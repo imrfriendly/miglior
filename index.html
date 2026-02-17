@@ -1,713 +1,1787 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+
+<html>
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Miglior 庫存系統</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --primary: #2563eb; 
-    --bg-body: #f1f5f9;
-    --surface: #ffffff;
-    --text-main: #1e293b;
-    --border: #e2e8f0;
-    --safe-bottom: env(safe-area-inset-bottom);
-  }
-  body { 
-    font-family: 'Inter', sans-serif; 
-    background: var(--bg-body); 
-    color: var(--text-main);
-    -webkit-tap-highlight-color: transparent;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: calc(20px + var(--safe-bottom));
-  }
-  
-  .sticky-header { 
-    position: sticky; top: 0; z-index: 50; background: var(--surface); 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 12px 16px; 
-    display: flex; justify-content: space-between; align-items: center; 
-  }
-  
-  #filterBar { position: sticky; top: 60px; z-index: 40; margin-bottom: 16px; }
-  
-  .btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 4px; touch-action: manipulation; }
-  .btn-primary { background: var(--primary); color: white; }
-  .btn-primary:active { background: #1d4ed8; }
-  .btn-ghost { background: transparent; color: #64748b; }
-  .btn-ghost:active { background: #f8fafc; color: #0f172a; }
-  .btn-outline { background: white; border-color: var(--border); }
-  
-  .nav-pills { 
-    display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px; 
-    background: #fff; border-bottom: 1px solid var(--border); scrollbar-width: none; 
-  }
-  .nav-pills::-webkit-scrollbar { display: none; }
-  .nav-item { padding: 8px 16px; border-radius: 20px; font-size: 14px; color: #64748b; cursor: pointer; white-space: nowrap; font-weight: 500; transition: all 0.2s; }
-  .nav-item:active { background: #f1f5f9; }
-  .nav-item.active { background: #1e293b; color: white; }
 
-  .sub-tabs { display: flex; gap: 4px; margin-bottom: 12px; background: #e2e8f0; padding: 4px; border-radius: 8px; width: fit-content; max-width: 100%; overflow-x: auto; }
-  .sub-tab { padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-  .sub-tab.active { background: white; color: #2563eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  <meta charset="UTF-8">
 
-  .card { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-  .hidden { display: none !important; }
-  
-  .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .data-table th { background: #f8fafc; padding: 10px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); white-space: nowrap; }
-  .data-table td { padding: 10px; border-bottom: 1px solid var(--border); }
-  .sticky-head th { position: sticky; top: 0; z-index: 10; }
-  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; max-height: 65vh; border: 1px solid var(--border); border-radius: 8px; }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  .wh-block { margin-bottom: 24px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; }
-  .wh-header { background: #f8fafc; padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: #2563eb; flex-wrap: wrap; gap: 8px; }
-  
-  .prod-row { display: flex; flex-direction: column; gap: 16px; padding: 16px; border-bottom: 1px solid var(--border); }
-  @media (min-width: 1024px) { .prod-row { display: grid; grid-template-columns: 300px 1fr; gap: 24px; padding: 20px; } }
+  <title>Fashion Store</title>
 
-  .size-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  @media (min-width: 480px) { .size-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (min-width: 768px) { .size-grid { grid-template-columns: repeat(4, 1fr); } }
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  .size-box { border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; background: #fafafa; display: flex; flex-direction: column; gap: 8px; }
-  
-  .qty-input { 
-    width: 100%; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 6px; padding: 8px 4px; text-align: center; font-weight: 600; transition: border-color 0.3s; 
-    appearance: none; -moz-appearance: textfield; 
-  }
-  .qty-input:focus { outline: none; border-color: #3b82f6; }
-  .qty-positive { background: #ecfdf5; color: #047857; }
-  .qty-saving { border-color: #eab308 !important; } 
-  .qty-saved { border-color: #22c55e !important; }
-  .qty-error { border-color: #ef4444 !important; }
-  
-  .remark-select { font-size: 14px; padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; width: 100%; background: white; color: #64748b; height: 36px; }
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
-  .action-btn-group button { padding: 6px 12px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 
-  #toast { position: fixed; bottom: 80px; right: 24px; left: 24px; margin: auto; max-width: 300px; text-align: center; background: rgba(16, 185, 129, 0.95); color: white; padding: 12px 20px; border-radius: 50px; transform: translateY(150px); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.15); backdrop-filter: blur(4px); }
-  #toast.show { transform: translateY(0); }
   
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); padding: 16px; }
-  .modal-box { background: white; padding: 24px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-  
-  #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.85); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-  .spinner { width: 44px; height: 44px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  
-  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-  @media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
-  
-  .stat-card { background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; transition: 0.2s; }
-</style>
+
+  <style>
+
+    :root { --primary: #2c3e50; --accent: #c0392b; --bg-light: #f8f9fa; --text-main: #2c3e50; }
+
+    body { font-family: 'Lato', sans-serif; color: var(--text-main); background-color: #fff; padding-top: 70px; display: flex; flex-direction: column; min-height: 100vh; }
+
+    #app { flex: 1; }
+
+    
+
+    /* Navbar */
+
+    .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
+    .brand-logo { font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 2px; font-size: 1.5rem; color: #000; text-decoration: none; }
+
+    
+
+    /* Hero Carousel */
+
+    .hero-section { height: 75vh; width: 100%; position: relative; background: #eee; }
+
+    .carousel-item, .carousel-inner, .hero-section .carousel { height: 100%; }
+
+    .carousel-item img { object-fit: cover; height: 100%; width: 100%; }
+
+    .hero-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 10; display: flex; align-items: center; justify-content: center; }
+
+    .hero-content { position: relative; z-index: 20; color: white; text-align: center; }
+
+    .hero-title { font-family: 'Cinzel', serif; font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+    
+
+    .btn-hero { border: 2px solid #fff; color: #fff; padding: 12px 30px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; background: transparent; }
+
+    .btn-hero:hover { background: #fff; color: #000; }
+
+    
+
+    /* Marquee */
+
+    .marquee-container { padding: 10px 0; overflow: hidden; position: relative; white-space: nowrap; }
+
+    .marquee-content { display: inline-block; padding-left: 100%; animation: marquee linear infinite; font-size: 0.9rem; letter-spacing: 1px; }
+
+    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
+
+
+    /* Social Sidebar */
+
+    .social-sidebar { position: fixed; bottom: 20px; left: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+
+    .social-btn { width: 45px; height: 45px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s; color: #333; font-size: 1.2rem; text-decoration: none; }
+
+    .social-btn:hover { transform: translateY(-3px); color: var(--accent); }
+
+    .social-btn.fb:hover { color: #1877F2; }
+
+    .social-btn.ig:hover { color: #E4405F; }
+
+    .social-btn.line:hover { color: #00C300; }
+
+
+
+    /* Products */
+
+    .product-card { border: none; transition: transform 0.3s; cursor: pointer; }
+
+    .product-card:hover { transform: translateY(-5px); }
+
+    .product-img-wrapper { position: relative; overflow: hidden; padding-top: 133%; }
+
+    .product-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+
+    
+
+    /* Tags Container Fix */
+
+    .tags-container { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; z-index: 5; }
+
+    .badge-tag { padding: 5px 10px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #fff; background: #000; border-radius: 2px; }
+
+    .tag-sale { background: var(--accent); } /* Special color for Hot/Sale */
+
+    
+
+    .spec-btn { border: 1px solid #ddd; background: #fff; color: #333; margin-right: 8px; margin-bottom: 8px; border-radius: 0; min-width: 40px; }
+
+    .spec-btn.active { border-color: #000; background: #000; color: #fff; }
+
+    .cart-badge { position: absolute; top: 0; right: 0; font-size: 0.7rem; transform: translate(50%, -10%); }
+
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+
+    
+
+    /* Footer */
+
+    .footer { background-color: #f8f9fa; padding: 40px 0; margin-top: auto; border-top: 1px solid #e9ecef; }
+
+    .footer a { color: #6c757d; text-decoration: none; transition: 0.2s; }
+
+    .footer a:hover { color: #2c3e50; }
+
+    
+
+    /* Admin Styles */
+
+    .admin-sidebar { height: 100%; background: #2c3e50; color: white; min-height: 80vh; padding: 20px 0; }
+
+    .admin-menu-item { display: block; padding: 15px 20px; color: rgba(255,255,255,0.7); text-decoration: none; cursor: pointer; transition: 0.2s; }
+
+    .admin-menu-item:hover, .admin-menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid var(--accent); }
+
+    .admin-content { padding: 30px; background: #f8f9fa; height: 100%; }
+
+    
+
+    /* Rich Text Editor */
+
+    .rich-editor { height: 200px; overflow-y: auto; background: white; border-top: 0; }
+
+    .editor-toolbar { background: #f8f9fa; padding: 5px; border-bottom: 1px solid #ddd; }
+
+    [contenteditable]:empty:before { content: attr(placeholder); color: #aaa; display: block; }
+
+    
+
+    @media (max-width: 768px) { 
+
+      .hero-title { font-size: 2.5rem; } 
+
+      .navbar-collapse { background: #fff; padding: 15px; } 
+
+      .admin-sidebar { min-height: auto; padding: 10px; } 
+
+      .social-sidebar { bottom: 10px; left: 10px; } 
+
+    }
+
+  </style>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
 </head>
-<body class="bg-slate-50">
 
-<div id="loadingOverlay" class="hidden">
-  <div class="spinner"></div>
-  <div id="loadingText" class="text-blue-600 font-bold text-lg">處理中...</div>
-</div>
+<body>
 
-<div id="loginScreen" class="flex items-center justify-center min-h-screen p-4">
-  <div class="card w-full max-w-sm text-center shadow-lg">
-    <h2 class="text-2xl font-bold mb-6 text-blue-700">Miglior 庫存系統</h2>
-    <input id="loginUser" class="w-full p-3 border rounded-lg mb-4 text-base" placeholder="帳號" autocapitalize="none" />
-    <input id="loginPw" type="password" class="w-full p-3 border rounded-lg mb-6 text-base" placeholder="密碼" />
-    <button id="loginBtn" class="btn btn-primary w-full py-3 text-base">登入</button>
-    <div id="loginMsg" class="text-red-500 text-sm mt-4 font-medium"></div>
-  </div>
-</div>
 
-<div id="app" class="max-w-7xl mx-auto hidden pb-10">
-  <header class="sticky-header">
-    <div class="flex items-center gap-2">
-      <div class="font-bold text-lg text-blue-700">📦 Miglior Stock</div>
-      <span id="userLabel" class="text-xs bg-blue-50 px-2 py-1 rounded text-blue-600 font-medium"></span>
-    </div>
-    <button id="logoutBtn" class="btn btn-ghost text-sm px-2">登出</button>
-  </header>
 
-  <div class="nav-pills rounded-lg mb-4 mx-2">
-    <div class="nav-item active" data-target="summarySection">📦 總表庫存</div>
-    <div class="nav-item" data-target="allStatsSection">📊 全倉統計</div>
-    <div class="nav-item" data-target="salesSection">🛒 銷售統計</div>
-    <div class="nav-item" data-target="addProductSection">👘 新增商品</div>
-    <div class="nav-item" data-target="logSection">📜 紀錄查詢</div>
-    <div class="nav-item hidden" id="navSettings" data-target="settingsSection">⚙️ 設定</div>
-  </div>
+<div id="app">
 
-  <main class="px-2">
-    <div id="filterBar" class="card flex flex-col sm:flex-row gap-3 shadow-md">
-      <input id="searchKey" placeholder="🔍 搜尋... (空白分隔)" class="p-3 border rounded-lg flex-1 min-w-0 text-base" />
-      <div class="flex gap-2">
-        <select id="filterWh" class="p-2 border rounded-lg bg-white flex-1 text-sm h-11"><option value="">全部倉庫</option></select>
-        <select id="filterCat" class="p-2 border rounded-lg bg-white flex-1 text-sm h-11"><option value="">全部分類</option></select>
-        <button id="refreshBtn" class="btn btn-ghost border border-gray-200 h-11 w-11 flex-none rounded-lg text-lg">⏳</button>
+  <div v-if="loading" class="loading-overlay"><div class="spinner-border text-dark" role="status"></div></div>
+
+
+
+  <nav class="navbar navbar-expand-lg fixed-top" v-if="page !== 'admin'">
+
+    <div class="container">
+
+      <a class="brand-logo" href="#" @click.prevent="goPage('home')">{{ config.storeName || 'FASHION' }}</a>
+
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav" ref="navbarCollapse">
+
+        <ul class="navbar-nav align-items-center gap-3">
+
+          <li class="nav-item"><a class="nav-link text-uppercase" href="#" @click.prevent="goPage('home')">首頁</a></li>
+
+          <li class="nav-item"><a class="nav-link text-uppercase" href="#" @click.prevent="goPage('shop')">全部商品</a></li>
+
+          <li class="nav-item"><a class="nav-link text-uppercase" href="#" @click.prevent="goPage('news')">最新消息</a></li>
+
+          <li class="nav-item"><a class="nav-link text-uppercase" href="#" @click.prevent="goPage('guide')">購物說明</a></li>
+
+          <li class="nav-item"><a class="nav-link text-uppercase" href="#" @click.prevent="goPage('about')">關於品牌</a></li>
+
+          <li class="nav-item" v-if="member.name">
+
+            <div class="dropdown">
+
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Hi, {{ member.name }}</a>
+
+              <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+
+                <li><a class="dropdown-item" href="#" @click.prevent="checkOrders(); closeNavbar()">我的訂單</a></li>
+
+                <li><hr class="dropdown-divider"></li>
+
+                <li><a class="dropdown-item text-danger" href="#" @click.prevent="logout(); closeNavbar()">登出</a></li>
+
+              </ul>
+
+            </div>
+
+          </li>
+
+          <li class="nav-item" v-if="!member.name"><a class="nav-link" href="#" @click.prevent="showLoginModal=true; closeNavbar()">會員登入</a></li>
+
+          <li class="nav-item position-relative">
+
+            <a class="nav-link text-dark" href="#" @click.prevent="goPage('cart')">
+
+              <i class="bi bi-cart"></i>
+
+              <span v-if="cart.length > 0" class="badge rounded-pill bg-danger cart-badge">{{ cartTotalQty }}</span>
+
+            </a>
+
+          </li>
+
+        </ul>
+
       </div>
+
     </div>
 
-    <section id="summarySection">
-      <div class="sub-tabs mx-auto">
-        <div class="sub-tab active" onclick="switchSummaryTab('active')">現貨商品</div>
-        <div class="sub-tab" onclick="switchSummaryTab('discontinued')">下架商品</div>
-      </div>
-      <div id="summaryContainer"></div>
-    </section>
+  </nav>
 
-    <section id="allStatsSection" class="hidden">
-      <div class="card">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-          <h3 class="font-bold text-lg">全倉現貨統計</h3>
-          <div class="flex gap-2 w-full sm:w-auto">
-            <input id="allStatsSearch" placeholder="🔍 搜尋..." class="p-2 border rounded text-sm flex-1 sm:w-48" />
-            <button id="exportCsvBtn" class="btn btn-outline text-sm whitespace-nowrap">匯出 CSV</button>
+
+
+  <div class="social-sidebar" v-if="page !== 'admin'">
+
+    <a v-if="config.socialFb" :href="config.socialFb" target="_blank" class="social-btn fb"><i class="bi bi-facebook"></i></a>
+
+    <a v-if="config.socialIg" :href="config.socialIg" target="_blank" class="social-btn ig"><i class="bi bi-instagram"></i></a>
+
+    <a v-if="config.socialLine" :href="config.socialLine" target="_blank" class="social-btn line"><i class="bi bi-line"></i></a>
+
+  </div>
+
+
+
+  <div v-if="page === 'home'">
+
+    <div v-if="config.marqueeText" class="marquee-container" :style="{background: config.marqueeBgColor || '#000', color: config.marqueeColor || '#fff'}"><div class="marquee-content" :style="{animationDuration: (config.marqueeSpeed || 15) + 's'}">{{ config.marqueeText }}</div></div>
+
+    
+
+    <div class="hero-section">
+
+      <div id="heroCarousel" ref="heroCarousel" class="carousel slide carousel-fade h-100" data-bs-ride="carousel" v-if="config.welcomeImages && config.welcomeImages.length > 0">
+
+        <div class="carousel-inner h-100">
+
+          <div class="carousel-item h-100" v-for="(img, idx) in config.welcomeImages" :key="idx" :class="{active: idx===0}" :data-bs-interval="3000">
+
+            <img :src="img" alt="Hero Image">
+
           </div>
+
         </div>
-        <div id="allStatsSummary" class="mb-4"></div>
-        <div id="allStatsContainer"></div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+
+          <span class="carousel-control-prev-icon"></span>
+
+        </button>
+
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+
+          <span class="carousel-control-next-icon"></span>
+
+        </button>
+
       </div>
-    </section>
 
-    <section id="salesSection" class="hidden">
-      <div class="card bg-amber-50 border-amber-200 mb-4"><h3 class="font-bold text-amber-800 text-center">🛒 銷售專區</h3></div>
-      <div id="salesContainer"></div>
-    </section>
+      <div v-else class="h-100 w-100 bg-secondary d-flex align-items-center justify-content-center text-white">No Images Configured</div>
 
-    <section id="addProductSection" class="hidden">
-      <div class="card max-w-2xl mx-auto">
-        <h3 class="font-bold mb-4 text-lg">新增商品</h3>
-        <p class="text-xs text-gray-500 mb-4">* 系統將自動在所有倉庫建立庫存，未填寫數量則預設為 0</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <label class="block text-sm font-medium">分類 <select id="addCatSelect" class="w-full p-3 border rounded-lg mt-1 bg-white"></select></label>
-          <label class="block text-sm font-medium">名稱 <input id="addName" class="w-full p-3 border rounded-lg mt-1" /></label>
-          <label class="block text-sm font-medium">顏色 <input id="addColor" class="w-full p-3 border rounded-lg mt-1" /></label>
-          <label class="block text-sm font-medium">售價 <input id="addPrice" type="number" inputmode="numeric" class="w-full p-3 border rounded-lg mt-1" /></label>
-          <label class="block sm:col-span-2 text-sm font-medium">說明 <select id="addDescSelect" class="w-full p-3 border rounded-lg mt-1 bg-white"></select></label>
+      
+
+      <div class="hero-overlay">
+
+        <div class="hero-content">
+
+          <h1 class="hero-title">{{ config.storeName }}</h1>
+
+          <p class="lead text-white mb-4">{{ config.welcomeMsg }}</p>
+
+          <button class="btn btn-hero" @click="page='shop'">立即選購</button>
+
         </div>
-        <button id="genSizeTableBtn" class="btn btn-primary w-full py-3">設定庫存數量 (選填)</button>
-        <div id="addSizeTable" class="mt-4 hidden overflow-x-auto"></div>
-      </div>
-    </section>
 
-    <section id="logSection" class="hidden">
-      <div class="card">
-        <h3 class="font-bold mb-4">紀錄查詢</h3>
-        <div class="grid grid-cols-2 gap-2 mb-4">
-          <input type="date" id="logStart" class="border p-2 rounded w-full">
-          <input type="date" id="logEnd" class="border p-2 rounded w-full">
-          <select id="logTypeFilter" class="border p-2 rounded bg-white w-full col-span-1">
-            <option value="">所有類型</option>
-            <option value="sale">銷售</option>
-            <option value="transfer">調撥</option>
-            <option value="modify">庫存修改</option>
+      </div>
+
+    </div>
+
+
+
+    <div class="container py-5">
+
+      <h3 class="text-center mb-5 font-serif">熱銷單品</h3>
+
+      <div class="row g-4">
+
+        <div class="col-6 col-md-3" v-for="item in featuredProducts" :key="item.rowIndex" @click="openProductModal(item)">
+
+          <div class="product-card">
+
+            <div class="product-img-wrapper">
+
+              <img :src="item.image || 'https://via.placeholder.com/300x400?text=No+Image'" class="product-img">
+
+              <div class="tags-container">
+
+                <span v-for="t in item.tags" :key="t" class="badge-tag" :class="{'tag-sale': t==='Hot' || t==='熱銷' || t==='Sale'}">{{ t }}</span>
+
+              </div>
+
+            </div>
+
+            <div class="mt-3 text-center">
+
+              <h6 class="mb-1 text-uppercase">{{ item.name }}</h6>
+
+              <p class="text-muted fw-bold">${{ item.price }}</p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div v-if="page === 'shop'" class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+      <h2 class="font-serif m-0">Collection</h2>
+
+      <select class="form-select w-auto border-0 bg-light" v-model="filterCategory">
+
+        <option value="All">全部商品</option>
+
+        <option v-for="c in categoriesList" :value="c.name">{{ c.name }}</option>
+
+      </select>
+
+    </div>
+
+    <div class="row g-4">
+
+      <div class="col-6 col-md-4 col-lg-3" v-for="item in filteredProducts" :key="item.rowIndex">
+
+        <div class="product-card h-100" @click="openProductModal(item)">
+
+          <div class="product-img-wrapper">
+
+            <img :src="item.image || 'https://via.placeholder.com/300x400'" class="product-img">
+
+            <div class="tags-container">
+
+              <span v-for="t in item.tags" :key="t" class="badge-tag" :class="{'tag-sale': t==='Hot' || t==='熱銷' || t==='Sale'}">{{ t }}</span>
+
+            </div>
+
+          </div>
+
+          <div class="mt-3">
+
+            <div class="text-muted small mb-1">{{ item.category }}</div>
+
+            <h6 class="mb-1 text-truncate">{{ item.name }}</h6>
+
+            <div class="d-flex justify-content-between align-items-center">
+
+              <span class="fw-bold">${{ item.price }}</span>
+
+              <button class="btn btn-sm btn-outline-dark rounded-0 px-3">購買</button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  
+
+  <div v-if="page === 'about'" class="container py-5"><div class="row justify-content-center"><div class="col-md-8 text-center"><h2 class="font-serif mb-4">關於品牌</h2><img :src="config.aboutImage || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1000&q=80'" class="img-fluid mb-4 w-100" style="height: 300px; object-fit: cover;"><div class="lead text-muted mt-4 text-start" style="line-height: 1.8;" v-html="config.aboutUs || 'Loading...'"></div></div></div></div>
+
+  
+
+  <div v-if="page === 'guide'" class="container py-5"><div class="row justify-content-center"><div class="col-md-8"><h2 class="font-serif mb-4 text-center">購物說明</h2><div class="bg-light p-4 rounded" style="white-space: pre-wrap;" v-html="config.pageGuide || '暫無內容'"></div></div></div></div>
+
+  <div v-if="page === 'news'" class="container py-5"><div class="row justify-content-center"><div class="col-md-8"><h2 class="font-serif mb-4 text-center">最新消息</h2><div class="bg-light p-4 rounded" style="white-space: pre-wrap;" v-html="config.pageNews || '暫無消息'"></div></div></div></div>
+
+
+
+  <div v-if="page === 'cart'" class="container py-5" style="max-width: 800px;">
+
+    <h2 class="font-serif mb-4">購物車</h2>
+
+    <div v-if="cart.length === 0" class="text-center py-5 bg-light"><i class="bi bi-bag fs-1 text-muted"></i><p class="mt-3">購物車是空的</p><button class="btn btn-dark rounded-0 mt-2" @click="page='shop'">去逛逛</button></div>
+
+    <div v-else>
+
+      <div class="card border-0 shadow-sm mb-4"><div class="card-body"><div v-for="(item, idx) in cart" :key="idx" class="d-flex align-items-center mb-3 pb-3 border-bottom"><img :src="item.image" style="width: 70px; height: 90px; object-fit: cover;" class="me-3"><div class="flex-grow-1"><div class="fw-bold">{{ item.name }}</div><div class="small text-muted">{{ item.opts }}</div><div class="text-danger">${{ item.price }}</div></div><div class="d-flex align-items-center"><button class="btn btn-sm btn-light" @click="item.qty > 1 ? item.qty-- : null">-</button><span class="mx-2">{{ item.qty }}</span><button class="btn btn-sm btn-light" @click="item.qty++">+</button></div><button class="btn btn-link text-muted ms-3" @click="cart.splice(idx, 1)"><i class="bi bi-x-lg"></i></button></div><div class="d-flex justify-content-between fw-bold fs-5"><span>小計</span><span>${{ cartSubtotal }}</span></div></div></div>
+
+      <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white font-serif fw-bold py-3">運送與結帳資訊</div>
+
+        <div class="card-body">
+
+          <form @submit.prevent="submitOrder">
+
+            <div class="mb-3"><label class="form-label">運送方式</label><select class="form-select rounded-0" v-model="orderForm.shippingMethod"><option v-for="m in modes" :value="m">{{ m.name }} (運費 ${{ m.fee }})</option></select></div>
+
+            <div class="row g-3 mb-3"><div class="col-md-6"><label class="form-label">收件人姓名</label><input type="text" class="form-control rounded-0" v-model="orderForm.name" required></div><div class="col-md-6"><label class="form-label">聯絡電話</label><input type="tel" class="form-control rounded-0" v-model="orderForm.phone" required></div></div>
+
+            <div class="mb-3" v-if="orderForm.shippingMethod.inputType === 'Address'"><label class="form-label">收件地址</label><input type="text" class="form-control rounded-0" v-model="orderForm.address" placeholder="請輸入完整地址" required></div>
+
+            <div class="mb-3" v-if="orderForm.shippingMethod.inputType === 'Store'"><label class="form-label">超商/門市名稱</label><input type="text" class="form-control rounded-0" v-model="orderForm.storeName" placeholder="例如：7-11 台中福星門市" required></div>
+
+            
+
+            <div class="mb-3">
+
+              <label class="form-label">付款方式</label>
+
+              <select class="form-select rounded-0" v-model="orderForm.paymentMethod">
+
+                 <option v-for="pay in enabledPayments" :value="pay">{{ pay.name }}</option>
+
+              </select>
+
+              <div v-if="currentPayment && currentPayment.type !== 'None'" class="mt-2 p-3 bg-light rounded border">
+
+                 <div v-if="currentPayment.type === 'Text'" style="white-space: pre-wrap;" class="mb-2 fw-bold text-primary">{{ currentPayment.content }}</div>
+
+                 <div v-if="currentPayment.type === 'Image' && currentPayment.content" class="mb-2 text-center">
+
+                    <img :src="currentPayment.content" style="max-width: 200px; border: 1px solid #ddd;">
+
+                    <div class="small text-muted mt-1">請掃描上方 QR Code 付款</div>
+
+                 </div>
+
+                 <div v-if="currentPayment.needInput === 'Y'">
+
+                    <label class="form-label small fw-bold text-danger">請輸入付款回報資訊 (必填)</label>
+
+                    <input type="text" class="form-control form-control-sm" v-model="orderForm.paymentDetails" placeholder="例如：轉帳後五碼 / 交易序號" required>
+
+                 </div>
+
+              </div>
+
+            </div>
+
+
+
+            <div class="mb-3"><label class="form-label">備註</label><textarea class="form-control rounded-0" v-model="orderForm.note" rows="2"></textarea></div>
+
+            <hr><div class="d-flex justify-content-between fs-4 fw-bold mb-4"><span>總金額</span><span class="text-danger">${{ cartSubtotal + (orderForm.shippingMethod.fee || 0) }}</span></div>
+
+            <button type="submit" class="btn btn-dark w-100 py-3 text-uppercase rounded-0 fw-bold">確認下單</button>
+
+          </form>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  
+
+  <div v-if="page === 'success'" class="container py-5 text-center"><div class="my-5"><i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i><h2 class="mt-3 font-serif">感謝您的購買！</h2><p class="text-muted">訂單編號：<span class="fw-bold text-dark">{{ lastOrderId }}</span></p><p>我們會盡快為您安排出貨。</p></div><button class="btn btn-outline-dark rounded-0 px-5" @click="page='home'; cart=[]">回到首頁</button></div>
+
+  <div v-if="page === 'history'" class="container py-5"><h3 class="font-serif mb-4">我的訂單紀錄</h3><div v-if="historyOrders.length===0" class="text-muted">尚無訂單</div><div class="card mb-3 border-0 shadow-sm" v-for="order in historyOrders" :key="order.orderId"><div class="card-header bg-white d-flex justify-content-between"><span class="fw-bold">{{ order.orderId }}</span><span class="text-muted small">{{ order.date }}</span></div><div class="card-body"><div style="white-space: pre-line;" class="small mb-2">{{ order.content }}</div><div class="d-flex justify-content-between align-items-end border-top pt-2"><div><span class="badge bg-secondary">{{ order.status }}</span> <span v-if="order.tracking" class="badge bg-info text-dark ms-1">追蹤: {{order.tracking}}</span></div><span class="fw-bold fs-5">${{ order.total }}</span></div></div></div><button class="btn btn-link text-muted mt-3" @click="page='home'">返回</button></div>
+
+
+
+  <div v-if="page === 'admin'" class="d-flex flex-column flex-md-row" style="min-height: 100vh;">
+
+    <div class="admin-sidebar col-md-2">
+
+      <div class="p-3 text-center mb-4 border-bottom border-secondary">
+
+        <h5 class="font-serif m-0">ADMIN PANEL</h5>
+
+        <small class="text-white-50">後台管理</small>
+
+      </div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='products'}" @click="adminTab='products'">📦 商品管理</div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='categories'}" @click="adminTab='categories'">📂 分類管理</div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='orders'}" @click="adminTab='orders'">📃 訂單管理</div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='members'}" @click="adminTab='members'; refreshAdminData()">👥 會員管理</div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='stats'}" @click="adminTab='stats'; refreshAdminData()">📊 銷售統計</div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='options'}" @click="adminTab='options'">🏷️ 規格/運送</div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='payments'}" @click="adminTab='payments'">💳 付款設定</div>
+
+      <div class="admin-menu-item" :class="{active: adminTab==='settings'}" @click="adminTab='settings'">⚙️ 網站設定</div>
+
+      <div class="admin-menu-item mt-5 text-danger" @click="adminLogout">🚪 登出後台</div>
+
+    </div>
+
+    
+
+    <div class="admin-content col-md-10">
+
+      <div v-if="adminTab === 'products'">
+
+        <div class="d-flex justify-content-between align-items-center mb-4"><h3>商品列表</h3><button class="btn btn-primary" @click="editProduct({})">＋ 新增商品</button></div>
+
+        <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>圖片</th><th>名稱</th><th>庫存</th><th>價格</th><th>狀態</th><th>操作</th></tr></thead><tbody><tr v-for="p in products" :key="p.rowIndex"><td><img :src="p.image" style="width:40px;height:40px;object-fit:cover" class="rounded"></td><td>{{ p.name }}<br><small class="text-muted">{{p.category}}</small></td><td><span class="badge" :class="p.stock<10?'bg-danger':'bg-secondary'">{{ p.stock }}</span></td><td>${{ p.price }}</td><td><span class="badge" :class="p.status==='Y'?'bg-success':'bg-secondary'">{{ p.status }}</span></td><td><button class="btn btn-sm btn-outline-primary me-2" @click="editProduct(p)">編輯</button><button class="btn btn-sm btn-outline-danger" @click="deleteProduct(p)">刪除</button></td></tr></tbody></table></div>
+
+      </div>
+
+      <div v-if="adminTab === 'categories'">
+
+        <div class="d-flex justify-content-between align-items-center mb-4"><h3>分類管理</h3><button class="btn btn-primary" @click="editCategory({})">＋ 新增分類</button></div>
+
+        <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>分類名稱</th><th>操作</th></tr></thead><tbody><tr v-for="c in categoriesList" :key="c.rowIndex"><td>{{ c.name }}</td><td><button class="btn btn-sm btn-link" @click="editCategory(c)">編輯</button><button class="btn btn-sm btn-outline-danger" @click="deleteCategory(c)">刪除</button></td></tr></tbody></table></div>
+
+      </div>
+
+      <div v-if="adminTab === 'orders'">
+
+         <div class="d-flex justify-content-between align-items-center mb-4">
+
+           <h3>訂單列表</h3>
+
+           <div class="d-flex gap-2">
+
+             <select class="form-select form-select-sm w-auto" v-model="adminOrderFilter">
+
+                <option value="All">全部狀態</option>
+
+                <option value="處理中">處理中</option>
+
+                <option value="已確認">已確認</option>
+
+                <option value="已出貨">已出貨</option>
+
+             </select>
+
+             <input type="text" class="form-control form-control-sm" placeholder="🔍 搜尋訂單號/客戶/電話" v-model="adminOrderSearch">
+
+             <button class="btn btn-sm btn-secondary" @click="refreshAdminData">重新整理</button>
+
+           </div>
+
+         </div>
+
+         <div v-if="filteredAdminOrders.length===0" class="text-muted text-center py-5">無符合訂單</div>
+
+         <div class="card mb-3 shadow-sm border-0" v-for="o in filteredAdminOrders" :key="o.orderId">
+
+           <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+             <div><strong>{{ o.orderId }}</strong> <span class="text-muted small ms-2">{{ o.date }}</span> <span v-if="o.tracking" class="badge bg-info text-dark">單號: {{o.tracking}}</span></div>
+
+             <div class="d-flex gap-2">
+
+               <span class="badge bg-secondary align-self-center">{{ o.status }}</span>
+
+               <button class="btn btn-sm btn-outline-primary" @click="editOrder(o)">編輯 / 配貨</button>
+
+             </div>
+
+           </div>
+
+           <div class="card-body">
+
+             <div class="row">
+
+               <div class="col-md-4 mb-2"><strong>客戶:</strong> {{ o.customer }}<br><small>{{ o.contact }}</small></div>
+
+               <div class="col-md-5 mb-2 bg-light p-2 rounded"><small style="white-space:pre-wrap">{{ o.content }}</small>
+
+               <div v-if="o.note" class="mt-1 text-danger small"><strong>備註:</strong> {{o.note}}</div></div>
+
+               <div class="col-md-3 text-end"><h4 class="text-danger m-0">${{ o.total }}</h4><small class="text-muted">{{ o.method }}</small></div>
+
+             </div>
+
+           </div>
+
+         </div>
+
+      </div>
+
+      <div v-if="adminTab === 'members'">
+
+         <div class="d-flex justify-content-between align-items-center mb-4"><h3>會員管理</h3><div class="d-flex gap-2"><input type="text" class="form-control form-control-sm" placeholder="🔍 搜尋姓名或電話" v-model="memberSearch"><button class="btn btn-sm btn-secondary text-nowrap" @click="refreshAdminData">重新整理</button></div></div>
+
+         <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>姓名</th><th>電話</th><th>註冊日期</th><th class="text-end">累計消費</th></tr></thead><tbody><tr v-for="m in filteredMembers" :key="m.phone" @click="viewMemberOrders(m)" style="cursor:pointer"><td>{{ m.name }}</td><td>{{ m.phone }}</td><td>{{ m.regDate }}</td><td class="text-end fw-bold text-danger">${{ m.spending }}</td></tr></tbody></table><div v-if="filteredMembers.length===0" class="p-4 text-center text-muted">無符合資料</div></div>
+
+      </div>
+
+      <div v-if="adminTab === 'stats'">
+
+         <h3 class="mb-4">銷售統計</h3>
+
+         <div class="row g-3 mb-4 align-items-end"><div class="col-md-4"><label class="small text-muted">開始日期</label><input type="date" class="form-control" v-model="statsDateStart"></div><div class="col-md-4"><label class="small text-muted">結束日期</label><input type="date" class="form-control" v-model="statsDateEnd"></div><div class="col-md-4"><div class="small text-muted"> </div><button class="btn btn-dark w-100" @click="refreshAdminData">查詢區間</button></div></div>
+
+         <div class="row g-4 mb-4"><div class="col-md-6"><div class="bg-white p-4 rounded shadow-sm text-center border-bottom border-4 border-danger"><h6 class="text-muted">區間總營收</h6><h2 class="text-danger fw-bold m-0">${{ statsSummary.totalRevenue }}</h2></div></div><div class="col-md-6"><div class="bg-white p-4 rounded shadow-sm text-center border-bottom border-4 border-dark"><h6 class="text-muted">訂單數量</h6><h2 class="fw-bold m-0">{{ statsSummary.totalOrders }}</h2></div></div></div>
+
+         <div class="row g-4">
+
+           <div class="col-md-6">
+
+             <div class="bg-white rounded shadow-sm overflow-hidden p-4 h-100"><h5 class="mb-3">🔥 熱銷商品 (Top 10)</h5><table class="table table-sm"><thead><tr><th>排名</th><th>商品名稱</th><th class="text-end">銷量</th></tr></thead><tbody><tr v-for="(p, idx) in statsSummary.topProducts" :key="p.name"><td>{{ idx+1 }}</td><td>{{ p.name }}</td><td class="text-end fw-bold">{{ p.qty }}</td></tr></tbody></table></div>
+
+           </div>
+
+           <div class="col-md-6">
+
+             <div class="bg-white rounded shadow-sm overflow-hidden p-4 h-100"><h5 class="mb-3">🏆 會員消費排行 (Top 10)</h5><table class="table table-sm"><thead><tr><th>排名</th><th>會員姓名</th><th class="text-end">金額</th></tr></thead><tbody><tr v-for="(m, idx) in statsSummary.topMembers" :key="m.phone"><td>{{ idx+1 }}</td><td>{{ m.name }}</td><td class="text-end fw-bold text-danger">${{ m.spending }}</td></tr></tbody></table></div>
+
+           </div>
+
+         </div>
+
+      </div>
+
+      <div v-if="adminTab === 'options'">
+
+         <h3 class="mb-4">規格與運送設定</h3>
+
+         <div class="mb-4"><div class="d-flex justify-content-between align-items-center mb-2"><h5>規格選項 (Variants)</h5><button class="btn btn-sm btn-primary" @click="editOption({})">新增規格</button></div><div class="bg-white rounded shadow-sm"><table class="table mb-0"><thead><tr><th>標題 (如:尺寸)</th><th>內容 (逗號分隔)</th><th>管理分類 (選填)</th><th>操作</th></tr></thead><tbody><tr v-for="o in options" :key="o.rowIndex"><td>{{ o.title }}</td><td>{{ o.choices.join(',') }}</td><td><small class="text-muted">{{ o.category }}</small></td><td><button class="btn btn-sm btn-link" @click="editOption(o)">編輯</button><button class="btn btn-sm btn-link text-danger" @click="deleteOption(o)">刪除</button></td></tr></tbody></table></div></div>
+
+         <div class="mb-4"><div class="d-flex justify-content-between align-items-center mb-2"><h5>運送方式 (Shipping)</h5><button class="btn btn-sm btn-primary" @click="editMode({})">新增方式</button></div><div class="bg-white rounded shadow-sm"><table class="table mb-0"><thead><tr><th>名稱</th><th>類型</th><th>運費</th><th>操作</th></tr></thead><tbody><tr v-for="m in modes" :key="m.rowIndex"><td>{{ m.name }}</td><td>{{ m.inputType }}</td><td>${{ m.fee }}</td><td><button class="btn btn-sm btn-link" @click="editMode(m)">編輯</button><button class="btn btn-sm btn-link text-danger" @click="deleteMode(m)">刪除</button></td></tr></tbody></table></div></div>
+
+      </div>
+
+      <div v-if="adminTab === 'payments'">
+
+         <div class="d-flex justify-content-between align-items-center mb-4"><h3>付款方式設定</h3><button class="btn btn-primary" @click="editPayment({})">＋ 新增方式</button></div>
+
+         <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table mb-0"><thead><tr><th>名稱</th><th>類型</th><th>需填回報</th><th>狀態</th><th>操作</th></tr></thead><tbody><tr v-for="p in payments" :key="p.rowIndex"><td>{{ p.name }}</td><td><span class="badge bg-light text-dark border">{{ p.type }}</span></td><td>{{ p.needInput==='Y'?'是':'否' }}</td><td><span class="badge" :class="p.enabled==='Y'?'bg-success':'bg-secondary'">{{ p.enabled==='Y'?'啟用':'停用' }}</span></td><td><button class="btn btn-sm btn-link" @click="editPayment(p)">編輯</button><button class="btn btn-sm btn-link text-danger" @click="deletePayment(p)">刪除</button></td></tr></tbody></table></div>
+
+      </div>
+
+
+
+      <div v-if="adminTab === 'settings'">
+
+         <h3 class="mb-4">網站設定</h3>
+
+         <div class="bg-white p-4 rounded shadow-sm" style="max-width: 600px">
+
+            <div class="mb-3"><label class="form-label">商店名稱</label><input class="form-control" v-model="adminConfig.StoreName"></div>
+
+            <div class="mb-3"><label class="form-label">網站狀態</label><select class="form-select" v-model="adminConfig.SystemStatus"><option value="Open">營業中</option><option value="Closed">維護中</option></select></div>
+
+            <div class="mb-3">
+
+              <label class="form-label">訂單通知 Email</label>
+
+              <div class="input-group">
+
+                <input class="form-control" v-model="adminConfig.AdminEmail" placeholder="example@gmail.com">
+
+                <button class="btn btn-outline-secondary" @click="sendTestEmail">發送測試信</button>
+
+              </div>
+
+            </div>
+
+            
+
+            <div class="mb-3"><label class="form-label">Facebook 連結</label><input class="form-control" v-model="adminConfig.SocialFb"></div>
+
+            <div class="mb-3"><label class="form-label">Instagram 連結</label><input class="form-control" v-model="adminConfig.SocialIg"></div>
+
+            <div class="mb-3"><label class="form-label">Line 連結</label><input class="form-control" v-model="adminConfig.SocialLine"></div>
+
+
+
+            <div class="mb-3"><label class="form-label">跑馬燈文字</label><input class="form-control" v-model="adminConfig.MarqueeText"></div>
+
+            <div class="row mb-3">
+
+              <div class="col-4"><label class="form-label">跑馬燈速度 (秒)</label><input type="number" class="form-control" v-model="adminConfig.MarqueeSpeed"></div>
+
+              <div class="col-4"><label class="form-label">跑馬燈字色</label><input type="color" class="form-control form-control-color w-100" v-model="adminConfig.MarqueeColor"></div>
+
+              <div class="col-4"><label class="form-label">跑馬燈底色</label><input type="color" class="form-control form-control-color w-100" v-model="adminConfig.MarqueeBgColor"></div>
+
+            </div>
+
+            
+
+            <div class="mb-3"><label class="form-label">歡迎標語 (Hero Title)</label><input class="form-control" v-model="adminConfig.WelcomeMessage"></div>
+
+            <div class="mb-3">
+
+              <label class="form-label">首頁輪播圖 URLs (每行一張或逗號分隔)</label>
+
+              <div class="mb-2" v-for="(url, idx) in welcomeImgInputs" :key="idx">
+
+                <div class="input-group">
+
+                  <input type="text" class="form-control" v-model="welcomeImgInputs[idx]" placeholder="圖片連結">
+
+                  <button class="btn btn-outline-danger" @click="removeWelcomeImgInput(idx)"><i class="bi bi-trash"></i></button>
+
+                </div>
+
+              </div>
+
+              <button class="btn btn-sm btn-outline-secondary" @click="addWelcomeImgInput"><i class="bi bi-plus"></i> 新增圖片</button>
+
+            </div>
+
+            
+
+            <div class="mb-3"><label class="form-label">關於品牌圖片 URL</label><input class="form-control" v-model="adminConfig.AboutImage"></div>
+
+            <div class="mb-3">
+
+              <label class="form-label d-flex justify-content-between">
+
+                <span>關於我們 (About Text)</span><span class="text-muted small">圖文編輯</span>
+
+              </label>
+
+              <div class="border rounded p-2 mb-2 bg-light">
+
+                <div class="editor-toolbar btn-group mb-2">
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('bold')"><b>B</b></button>
+
+                  <input type="color" class="btn btn-outline-secondary btn-sm p-1" style="width:40px" @change="execCmd('foreColor', $event.target.value)">
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyLeft')"><i class="bi bi-text-left"></i></button>
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyCenter')"><i class="bi bi-text-center"></i></button>
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyRight')"><i class="bi bi-text-right"></i></button>
+
+                </div>
+
+                <div id="aboutEditor" class="form-control bg-white rich-editor" contenteditable="true" @input="updateAboutUsContent"></div>
+
+              </div>
+
+            </div>
+
+            
+
+            <div class="mb-3">
+
+              <label class="form-label d-flex justify-content-between">
+
+                <span>最新消息 (News)</span><span class="text-muted small">圖文編輯</span>
+
+              </label>
+
+              <div class="border rounded p-2 mb-2 bg-light">
+
+                <div class="editor-toolbar btn-group mb-2">
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('bold')"><b>B</b></button>
+
+                  <input type="color" class="btn btn-outline-secondary btn-sm p-1" style="width:40px" @change="execCmd('foreColor', $event.target.value)">
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyLeft')"><i class="bi bi-text-left"></i></button>
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyCenter')"><i class="bi bi-text-center"></i></button>
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyRight')"><i class="bi bi-text-right"></i></button>
+
+                </div>
+
+                <div id="newsEditor" class="form-control bg-white rich-editor" contenteditable="true" @input="updateNewsContent"></div>
+
+              </div>
+
+            </div>
+
+
+
+            <div class="mb-3">
+
+              <label class="form-label d-flex justify-content-between">
+
+                <span>購物說明 (Guide)</span><span class="text-muted small">圖文編輯</span>
+
+              </label>
+
+              <div class="border rounded p-2 mb-2 bg-light">
+
+                <div class="editor-toolbar btn-group mb-2">
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('bold')"><b>B</b></button>
+
+                  <input type="color" class="btn btn-outline-secondary btn-sm p-1" style="width:40px" @change="execCmd('foreColor', $event.target.value)">
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyLeft')"><i class="bi bi-text-left"></i></button>
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyCenter')"><i class="bi bi-text-center"></i></button>
+
+                  <button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyRight')"><i class="bi bi-text-right"></i></button>
+
+                </div>
+
+                <div id="guideEditor" class="form-control bg-white rich-editor" contenteditable="true" @input="updateGuideContent"></div>
+
+              </div>
+
+            </div>
+
+
+
+            <div class="mb-3"><label class="form-label">後台管理密碼</label><input class="form-control" v-model="adminConfig.AdminPassword"></div>
+
+            <button class="btn btn-success w-100" @click="saveConfig">儲存所有設定</button>
+
+         </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <footer class="footer" v-if="page !== 'admin'">
+
+    <div class="container text-center">
+
+      <div class="mb-3"><a href="#" @click.prevent="goPage('home')" class="mx-2">首頁</a><a href="#" @click.prevent="goPage('shop')" class="mx-2">商品</a><a href="#" @click.prevent="goPage('about')" class="mx-2">關於</a></div>
+
+      <p class="small text-muted mb-2">© {{ new Date().getFullYear() }} {{ config.storeName || 'Fashion Store' }}.</p>
+
+      <a href="#" @click.prevent="showAdminLogin=true" class="small text-secondary text-decoration-underline"><i class="bi bi-gear"></i> 後台管理</a>
+
+    </div>
+
+  </footer>
+
+
+
+  <div class="modal fade" id="adminProdModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">{{ editingProd.rowIndex ? '編輯商品' : '新增商品' }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+
+      <div class="mb-2"><label>名稱</label><input class="form-control" v-model="editingProd.name"></div>
+
+      <div class="row mb-2">
+
+        <div class="col">
+
+          <label>分類</label>
+
+          <select class="form-select" v-model="editingProd.category">
+
+             <option v-for="c in categoriesList" :value="c.name">{{ c.name }}</option>
+
           </select>
-          <select id="logWhFilter" class="border p-2 rounded w-full col-span-1"><option value="">不限倉庫</option></select>
-          <button id="logQueryBtn" class="btn btn-primary col-span-2 py-2">查詢</button>
-        </div>
-        <div class="table-container"><table class="data-table sticky-head"><thead id="logThead"></thead><tbody id="logTbody"></tbody></table></div>
-      </div>
-    </section>
 
-    <section id="settingsSection" class="hidden">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card">
-          <h4 class="font-bold mb-2 text-blue-800">🏭 倉庫管理</h4>
-          <div class="flex gap-2 mb-2"><input id="newWhName" placeholder="名稱" class="p-2 border rounded flex-1"><input id="newWhLoc" placeholder="地點" class="p-2 border rounded flex-1"><button id="addWhBtn" class="btn btn-primary">新增</button></div>
-          <div id="whList" class="max-h-60 overflow-y-auto space-y-2"></div>
         </div>
-        <div class="card">
-          <h4 class="font-bold mb-2 text-blue-800">📂 分類管理 (連動)</h4>
-          <button onclick="promptAddCat()" class="btn btn-outline w-full mb-2 py-2">新增分類</button>
-          <div id="catList" class="max-h-60 overflow-y-auto space-y-2"></div>
-        </div>
-        <div class="card">
-          <h4 class="font-bold mb-2 text-blue-800">📝 說明選項</h4>
-          <div class="flex gap-2 mb-2"><input id="newDesc" placeholder="說明" class="p-2 border rounded flex-1"><button id="addDescBtn" class="btn btn-primary">新增</button></div>
-          <div id="descList" class="flex flex-wrap gap-2"></div>
-        </div>
-        <div class="card">
-          <h4 class="font-bold mb-2 text-blue-800">🏷️ 備註選項</h4>
-          <div class="flex gap-2 mb-2"><input id="newRem" placeholder="備註" class="p-2 border rounded flex-1"><button id="addRemBtn" class="btn btn-primary">新增</button></div>
-          <div id="remList" class="flex flex-wrap gap-2"></div>
-        </div>
-        <div class="card col-span-1 md:col-span-2">
-          <h4 class="font-bold mb-2 text-blue-800">👥 使用者管理</h4>
-          <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 mb-4 items-end bg-gray-50 p-3 rounded">
-            <input id="newU" placeholder="帳號" class="border p-2 rounded" autocapitalize="none">
-            <input id="newP" type="password" placeholder="密碼" class="border p-2 rounded">
-            <input id="newDN" placeholder="顯示名稱" class="border p-2 rounded">
-            <select id="newRole" class="border p-2 rounded bg-white h-10"><option value="staff">員工</option><option value="admin">管理員</option></select>
-            <button id="addUserBtn" class="btn btn-primary w-full h-10">新增</button>
-          </div>
-          <div id="userList" class="space-y-2"></div>
-        </div>
+
+        <div class="col"><label>價格</label><input type="number" class="form-control" v-model="editingProd.price"></div>
+
+        <div class="col"><label>庫存</label><input type="number" class="form-control" v-model="editingProd.stock"></div>
+
       </div>
-    </section>
-  </main>
+
+      <div class="mb-2"><label>圖片網址</label><input class="form-control" v-model="editingProd.image" placeholder="https://..."></div>
+
+      <div class="mb-2"><label>描述</label><textarea class="form-control" v-model="editingProd.desc"></textarea></div>
+
+      <div class="mb-2"><label>標籤 (逗號分隔)</label><input class="form-control" v-model="editingProd.tags" placeholder="New, Hot"></div>
+
+      
+
+      <div class="mb-3 border p-3 rounded bg-light">
+
+        <label class="fw-bold mb-2 d-block text-primary">適用規格 (請勾選可提供的選項)</label>
+
+        <div class="row g-2">
+
+          <div class="col-12" v-for="opt in options" :key="opt.title">
+
+            <div class="form-check mb-1">
+
+              <input class="form-check-input" type="checkbox" :id="'grp-'+opt.title" :checked="!!editingProd.specsObj?.[opt.title]" @change="(e) => toggleSpecGroup(opt.title, opt.choices, e.target.checked)">
+
+              <label class="form-check-label fw-bold" :for="'grp-'+opt.title">{{ opt.title }}</label>
+
+            </div>
+
+            <div class="ps-4 d-flex flex-wrap gap-2 mb-2" v-if="!!editingProd.specsObj?.[opt.title]">
+
+               <div v-for="choice in opt.choices" :key="choice" class="form-check form-check-inline">
+
+                  <input class="form-check-input" type="checkbox" :id="'c-'+opt.title+'-'+choice" :checked="editingProd.specsObj[opt.title].includes(choice)" @change="(e) => toggleSpecChoice(opt.title, choice, e.target.checked)">
+
+                  <label class="form-check-label small" :for="'c-'+opt.title+'-'+choice">{{ choice }}</label>
+
+               </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div v-if="options.length === 0" class="text-muted small">尚未建立規格，請至「規格/運送」頁籤新增。</div>
+
+      </div>
+
+      <div class="mb-2"><label>狀態</label><select class="form-select" v-model="editingProd.status"><option value="Y">上架 (Y)</option><option value="N">下架 (N)</option></select></div>
+
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="saveProduct">儲存</button></div></div></div></div>
+
+  
+
+  <div class="modal fade" id="adminCatModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">分類管理</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+
+      <div class="mb-3"><label>分類名稱</label><input class="form-control" v-model="editingCat.name" placeholder="如: 上身類"></div>
+
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="saveCategory">儲存</button></div></div></div></div>
+
+
+
+  <div class="modal fade" id="adminOrderModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">訂單編輯 / 配貨</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+
+      <div class="alert alert-secondary py-2 mb-3 small">{{ editingOrder.orderId }} - {{ editingOrder.customer }}</div>
+
+      <div class="mb-3"><label class="form-label">訂單狀態</label><select class="form-select" v-model="editingOrder.status"><option value="處理中">處理中</option><option value="已確認">已確認</option><option value="已出貨">已出貨</option><option value="已完成">已完成</option><option value="已取消">已取消</option></select></div>
+
+      <div class="mb-3"><label class="form-label">物流追蹤單號 (Tracking Code)</label><input class="form-control" v-model="editingOrder.tracking" placeholder="輸入物流單號"></div>
+
+      <div class="mb-3"><label class="form-label">管理員備註</label><textarea class="form-control" v-model="editingOrder.note" rows="3" placeholder="內部備註..."></textarea></div>
+
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="saveOrder">儲存變更</button></div></div></div></div>
+
+
+
+  <div class="modal fade" id="adminOptModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">編輯規格</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+
+      <div class="mb-2"><label>規格標題 (前台顯示)</label><input class="form-control" v-model="editingOpt.title" placeholder="如: 尺寸"></div>
+
+      <div class="mb-2"><label>選項內容 (逗號分隔)</label><input class="form-control" v-model="editingOpt.choicesStr" placeholder="S, M, L"></div>
+
+      <div class="mb-2"><label>管理分類 (選填，僅供分類用)</label><input class="form-control" v-model="editingOpt.category" placeholder="如: 上身類"></div>
+
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="saveOption">儲存</button></div></div></div></div>
+
+  
+
+  <div class="modal fade" id="adminModeModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">編輯運送方式</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+
+      <div class="mb-2"><label>名稱</label><input class="form-control" v-model="editingMode.name"></div>
+
+      <div class="mb-2"><label>類型</label><select class="form-select" v-model="editingMode.inputType"><option value="Address">宅配 (填地址)</option><option value="Store">超商 (填店名)</option><option value="None">自取 (無)</option></select></div>
+
+      <div class="mb-2"><label>運費</label><input type="number" class="form-control" v-model="editingMode.fee"></div>
+
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="saveMode">儲存</button></div></div></div></div>
+
+
+
+  <div class="modal fade" id="adminPayModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">編輯付款方式</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+
+      <div class="mb-2"><label>名稱 (如: LINE PAY)</label><input class="form-control" v-model="editingPay.name"></div>
+
+      <div class="mb-2"><label>類型</label><select class="form-select" v-model="editingPay.type"><option value="Text">純文字 (如帳號)</option><option value="Image">圖片 (如QR Code)</option><option value="None">無 (如貨到付款)</option></select></div>
+
+      <div class="mb-2" v-if="editingPay.type!=='None'"><label>內容 (文字資訊或圖片網址)</label><input class="form-control" v-model="editingPay.content"></div>
+
+      <div class="mb-2 form-check form-switch"><input class="form-check-input" type="checkbox" v-model="editingPay.needInput" true-value="Y" false-value="N"><label class="form-check-label">需填回報資訊 (如後五碼)</label></div>
+
+      <div class="mb-2 form-check form-switch"><input class="form-check-input" type="checkbox" v-model="editingPay.enabled" true-value="Y" false-value="N"><label class="form-check-label">啟用</label></div>
+
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="savePayment">儲存</button></div></div></div></div>
+
+
+
+  <div class="modal fade" id="adminMemberOrderModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">會員歷史訂單</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+
+      <div v-if="adminMemberOrders.length===0" class="text-center py-4 text-muted">無訂單記錄</div>
+
+      <div v-for="o in adminMemberOrders" :key="o.orderId" class="card mb-2"><div class="card-body py-2">
+
+         <div class="d-flex justify-content-between"><strong>{{o.orderId}}</strong> <span>{{o.date}}</span></div>
+
+         <div class="small text-muted">{{o.content}}</div>
+
+         <div class="d-flex justify-content-between mt-1"><div><span class="badge bg-secondary">{{o.status}}</span> <span v-if="o.tracking" class="badge bg-info text-dark ms-1">追蹤: {{o.tracking}}</span></div><span class="fw-bold text-danger">${{o.total}}</span></div>
+
+      </div></div>
+
+  </div></div></div></div>
+
+
+
+  <div class="modal fade" id="productModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content rounded-0 border-0" v-if="modalItem"><div class="modal-header border-0"><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body pt-0"><div class="row"><div class="col-md-6 mb-3"><img :src="modalItem.image" class="w-100" style="object-fit: cover; aspect-ratio: 3/4;"></div><div class="col-md-6"><h3 class="font-serif mb-2">{{ modalItem.name }}</h3><div class="fs-4 fw-bold text-danger mb-3">${{ modalItem.price }}</div><p class="text-muted small" style="line-height:1.6">{{ modalItem.desc }}</p><hr>
+
+      <div v-if="modalOptions.length > 0">
+
+        <div v-for="(optGroup, idx) in modalOptions" :key="idx" class="mb-3">
+
+          <label class="fw-bold small mb-2 d-block">{{ optGroup.title }}</label>
+
+          <div class="d-flex flex-wrap"><button type="button" class="btn spec-btn" v-for="choice in optGroup.choices" :class="{active: selectedOpts[optGroup.title] === choice}" @click="selectedOpts[optGroup.title] = choice">{{ choice }}</button></div>
+
+        </div>
+
+      </div>
+
+      <div v-else class="text-muted small mb-3">此商品無規格選項</div>
+
+      <div class="mb-4"><label class="fw-bold small mb-2 d-block">數量</label><div class="input-group" style="width: 140px;"><button class="btn btn-outline-secondary rounded-0" @click="modalQty > 1 ? modalQty-- : null">-</button><input type="text" class="form-control text-center border-secondary" :value="modalQty" readonly><button class="btn btn-outline-secondary rounded-0" @click="modalQty++">+</button></div></div><button class="btn btn-dark w-100 py-3 rounded-0 text-uppercase fw-bold" @click="addToCart">加入購物車</button></div></div></div></div></div></div>
+
+  <div v-if="showAdminLogin" class="modal show d-block" style="background: rgba(0,0,0,0.5)"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 text-center"><h4 class="mb-3">管理員登入</h4><input type="password" class="form-control mb-3" placeholder="請輸入後台密碼" v-model="adminPin"><button class="btn btn-dark w-100" @click="adminLogin">登入</button><button class="btn btn-link w-100 mt-2" @click="showAdminLogin=false">取消</button></div></div></div>
+
+  <div v-if="showLoginModal" class="modal show d-block" style="background: rgba(0,0,0,0.5)"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0 p-4"><h4 class="font-serif text-center mb-4">會員登入</h4><input type="tel" class="form-control rounded-0 mb-3" placeholder="手機號碼" v-model="loginData.phone"><input type="password" class="form-control rounded-0 mb-3" placeholder="密碼" v-model="loginData.password"><button class="btn btn-dark w-100 rounded-0 mb-2" @click="login">登入</button><button class="btn btn-link text-muted w-100" @click="showLoginModal=false; showRegModal=true">還沒註冊？</button><button class="btn-close position-absolute top-0 end-0 m-3" @click="showLoginModal=false"></button></div></div></div>
+
+  <div v-if="showRegModal" class="modal show d-block" style="background: rgba(0,0,0,0.5)"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0 p-4"><h4 class="font-serif text-center mb-4">註冊會員</h4><input type="text" class="form-control rounded-0 mb-3" placeholder="姓名" v-model="regData.name"><input type="tel" class="form-control rounded-0 mb-3" placeholder="手機號碼" v-model="regData.phone"><input type="text" class="form-control rounded-0 mb-3" placeholder="設定密碼" v-model="regData.password"><button class="btn btn-dark w-100 rounded-0 mb-2" @click="register">註冊</button><button class="btn btn-link text-muted w-100" @click="showRegModal=false; showLoginModal=true">返回登入</button></div></div></div>
+
 </div>
 
-<div id="modalRoot"></div>
-<div id="toast">✅ 完成</div>
+
 
 <script>
-// ===============================================
-// ✅ 請填入您的 GAS 部署網址 (exec 結尾)
-// ===============================================
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwAlv_KyMx_P3_AF7klHQcD9NPKYIpiKlN5R4ndtYGNQC6DToAUt5KcdEe0MYsqoqXkQQ/exec"; 
 
-let currentUser = null, dataCache = {}, SIZE_ORDER = ["S","M","L","XL","2XL","3XL","4XL","5XL","F"];
-let SALES_WH_ID = "";
-let allStatsData = null;
-let statsFilterWh = null;
-let currentSummaryTab = 'active'; 
+// ==========================================
 
-// === Init Events ===
-document.getElementById('loginBtn').onclick = doLogin;
-document.querySelectorAll('.nav-item').forEach(el=>el.onclick=navClick);
-document.getElementById('refreshBtn').onclick = loadAllData;
-document.getElementById('searchKey').oninput = debounce(renderViews,300);
-document.getElementById('filterWh').onchange = renderViews;
-document.getElementById('filterCat').onchange = renderViews;
-document.getElementById('logQueryBtn').onclick = fetchLogs;
-document.getElementById('allStatsSearch').oninput = debounce(renderAllStatsTable, 300);
-document.getElementById('exportCsvBtn').onclick = exportAllStats;
-document.getElementById('addWhBtn').onclick = addWarehouseAction;
-document.getElementById('addDescBtn').onclick = ()=>simpleAdd('addDesc','newDesc',loadAllData);
-document.getElementById('addRemBtn').onclick = ()=>simpleAdd('addRem','newRem',loadAllData); 
-document.getElementById('addUserBtn').onclick = addUser;
-document.getElementById('genSizeTableBtn').onclick = genAddTable;
-document.getElementById('logoutBtn').onclick = doLogout;
+// 請將您的 Google Apps Script 部署網址貼在這裡
 
-// === API Helper ===
-async function callApi(op, data = {}) {
-  try {
-    const res = await fetch(GAS_API_URL, {
-      method: "POST",
-      body: JSON.stringify({ op, data })
-    });
-    return await res.json();
-  } catch (e) {
-    console.error(e);
-    return { status: "error", message: "連線錯誤，請檢查網路或網址。" };
-  }
-}
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3dgatcqmkJYSyDUymTxP0VGkM3iL0HlavPaJA7dRDBKDHTDCvmWVr7VAhjYfP12mBlg/exec";
 
-function setLoading(isLoading, text="處理中..."){
-  const el = document.getElementById('loadingOverlay');
-  document.getElementById('loadingText').innerText = text;
-  if(isLoading) el.classList.remove('hidden'); else el.classList.add('hidden');
-}
+// ==========================================
 
-function escapeHtml(text) {
-  if (text == null) return "";
-  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 
-async function doLogin(){
-  const u=document.getElementById('loginUser').value, p=document.getElementById('loginPw').value;
-  setLoading(true, "登入中...");
-  
-  const res = await callApi('login', {u, p});
-  setLoading(false);
-  
-  if(res.status==='success'){
-    currentUser=res.data; 
-    document.getElementById('loginScreen').classList.add('hidden'); 
-    document.getElementById('app').classList.remove('hidden');
-    document.getElementById('userLabel').innerText = escapeHtml(currentUser.displayName); 
-    if(currentUser.role === 'admin') document.getElementById('navSettings').classList.remove('hidden');
-    else document.getElementById('navSettings').classList.add('hidden');
-    loadAllData();
-    const today = new Date().toISOString().slice(0,10);
-    document.getElementById('logStart').value = today;
-    document.getElementById('logEnd').value = today;
-  } else {
-    document.getElementById('loginMsg').innerText = res.message;
-  }
-}
 
-function doLogout(){
-  currentUser = null; dataCache = {};
-  document.getElementById('app').classList.add('hidden');
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('loginPw').value = "";
-}
+const { createApp } = Vue;
 
-async function loadAllData(){
-  setLoading(true, "載入資料...");
-  
-  const ddRes = await callApi('getDropdowns');
-  if(ddRes.status === 'success'){
-    dataCache.dd = ddRes.data; 
-    SALES_WH_ID = ddRes.data.salesWhId; 
-    renderDropdowns(); 
-    renderSettings();
-  }
+const bsModals = {};
 
-  const invRes = await callApi('getInventory');
-  setLoading(false);
-  if(invRes.status === 'success'){
-    dataCache.summary = invRes.data; 
-    renderViews();
-  }
-}
+const getModal = (id) => { if(!bsModals[id]) bsModals[id] = new bootstrap.Modal(document.getElementById(id)); return bsModals[id]; }
 
-function switchSummaryTab(tab){
-  currentSummaryTab = tab;
-  document.querySelectorAll('.sub-tab').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll(`.sub-tab[onclick*="${tab}"]`).forEach(el=>el.classList.add('active'));
-  renderViews();
-}
 
-function renderViews(){
-  if(!dataCache.summary) return;
-  const rawKey = document.getElementById('searchKey').value.toLowerCase().trim();
-  const keys = rawKey ? rawKey.split(/\s+/) : []; 
-  const c = document.getElementById('filterCat').value;
-  const wId = document.getElementById('filterWh').value;
-  
-  const filterFn = (list, forceShowSales=false) => list.map(w=>({
-    ...w, products: w.products.filter(p=>{
-       const isDisc = p.isDiscontinued;
-       if(currentSummaryTab === 'active' && isDisc) return false;
-       if(currentSummaryTab === 'discontinued' && !isDisc) return false;
 
-       const searchStr = (p.name + p.color).toLowerCase();
-       const matchKey = keys.length === 0 || keys.every(k => searchStr.includes(k));
-       const matchCat = !c || p.category === c;
-       return matchKey && matchCat;
-    })
-  })).filter(w => w.products.length > 0 || (forceShowSales && w.id === SALES_WH_ID));
+createApp({
 
-  let normal = dataCache.summary.normal.filter(w=>w.id!==SALES_WH_ID);
-  if(wId) normal = normal.filter(w=>w.id===wId);
-  renderGrid(document.getElementById('summaryContainer'), filterFn(normal), false);
+  data() {
 
-  let sales = dataCache.summary.normal.filter(w=>w.id===SALES_WH_ID);
-  renderGrid(document.getElementById('salesContainer'), filterFn(sales, true), true);
-}
+    return {
 
-function renderGrid(cont, data, isSales){
-  cont.innerHTML=""; 
-  if(!data.length){ cont.innerHTML='<div class="text-center text-gray-400 py-8">無資料</div>'; return; }
-  data.forEach(wh=>{
-    const d=document.createElement('div'); d.className='wh-block';
-    
-    const totalQty = wh.products.reduce((a,p)=>a+Object.values(p.sizes).reduce((x,y)=>x+Number(y),0),0);
-    const skuCount = wh.products.length;
-    
-    d.innerHTML=`<div class="wh-header">
-      <span class="text-lg">${escapeHtml(wh.warehouse)}</span>
-      <div class="text-sm bg-blue-50 px-2 py-1 rounded text-blue-600">
-        <span class="mr-2">品項: ${skuCount}</span>
-        <span>總數: ${totalQty}</span>
-      </div>
-    </div>`;
-    
-    if(isSales && wh.products.length === 0) d.innerHTML += `<div class="p-6 text-center text-gray-400 text-sm">尚未有銷售紀錄</div>`;
-    
-    wh.products.forEach(p=>{
-      const r=document.createElement('div'); r.className='prod-row';
-      const priceTag = p.price ? `<span class="text-sm text-gray-500 font-normal ml-1">($${p.price})</span>` : '';
+      loading: false, page: 'home', config: {}, products: [], categoriesList: [], options: [], modes: [], payments: [],
+
+      filterCategory: 'All', cart: [], modalItem: null, modalQty: 1, modalOptions: [], selectedOpts: {},
+
+      orderForm: { name: '', phone: '', address: '', storeName: '', note: '', shippingMethod: {}, paymentMethod: '', paymentDetails: '' },
+
+      lastOrderId: '', member: {}, showLoginModal: false, showRegModal: false,
+
+      loginData: {phone:'', password:''}, regData: {name:'', phone:'', password:''}, historyOrders: [],
+
       
-      r.innerHTML=`<div>
-        <div class="font-bold text-xl text-blue-900 mb-1 leading-tight">${escapeHtml(p.name)} ${priceTag}</div>
-        <div class="text-base text-gray-600 mb-3 flex items-center gap-2">
-           <span class="bg-gray-100 px-2 py-0.5 rounded text-xs">${escapeHtml(p.category)}</span>
-           <span>${escapeHtml(p.color)}</span>
-        </div>
-        ${!isSales?renderDescSel(p.id,p.description):''}
-      </div>`;
-      
-      const sg=document.createElement('div'); sg.className='size-grid';
-      Object.keys(p.sizes).sort((a,b)=>SIZE_ORDER.indexOf(a)-SIZE_ORDER.indexOf(b)).forEach(s=>{
-        const q=p.sizes[s];
-        const rem = p.remarks[s] || "";
-        const inputId = `qty_${wh.id}_${p.id}_${s}`;
-        
-        let h = `<div class="size-box"><div class="text-sm text-gray-500 font-bold">${escapeHtml(s)}</div>`;
-        
-        if(isSales) {
-          h+=`<div id="${inputId}" class="font-bold text-2xl text-blue-600 py-2">${q}</div></div>`;
-        } else {
-          h+=`<input id="${inputId}" type="number" inputmode="numeric" min="0" class="qty-input ${q>0?'qty-positive':''}" value="${q}" onchange="updQty('${wh.id}','${p.id}','${s}',this)">`;
-          h+=`<div class="flex justify-center gap-1 mt-1 action-btn-group">
-                <button class="flex-1 border rounded hover:bg-gray-100 active:bg-gray-200" onclick="openTrans('${wh.id}','${escapeHtml(wh.warehouse)}','${p.id}','${escapeHtml(p.name)}','${s}',${q})">⇄</button>
-                <button class="flex-1 border border-amber-200 text-amber-600 rounded hover:bg-amber-50 active:bg-amber-100" onclick="doSell('${wh.id}','${p.id}','${s}',this)">💲</button>
-              </div>`;
-          h+=`<select class="remark-select mt-1" onchange="updRemark('${wh.id}','${p.id}','${s}',this.value)">
-                <option value="">-</option>
-                ${dataCache.dd.remarks.map(x=>`<option value="${escapeHtml(x)}" ${x===rem?'selected':''}>${escapeHtml(x)}</option>`).join('')}
-              </select>`;
-          h+=`</div>`;
-        }
-        sg.innerHTML+=h;
-      });
-      r.appendChild(sg); d.appendChild(r);
-    });
-    cont.appendChild(d);
-  });
-}
 
-function updateLocalState(wid, pid, size, delta) {
-  if (dataCache && dataCache.summary) {
-    const wh = dataCache.summary.normal.find(w => w.id === wid);
-    if (wh) {
-      const p = wh.products.find(x => x.id === pid);
-      if (p) {
-        if (p.sizes[size] === undefined) p.sizes[size] = 0;
-        p.sizes[size] = Number(p.sizes[size]) + delta;
+      // Admin Data
+
+      showAdminLogin: false, adminPin: '', isAdmin: false, adminTab: 'products',
+
+      adminOrders: [], adminMembers: [], adminConfig: {}, adminMemberOrders: [], adminOrderFilter: 'All',
+
+      editingProd: { specsObj: {} }, editingOpt: {}, editingMode: {}, editingCat: {}, editingOrder: {}, editingPay: {},
+
+      welcomeImgInputs: [],
+
+      
+
+      memberSearch: '', adminOrderSearch: '',
+
+      statsDateStart: new Date().toISOString().split('T')[0],
+
+      statsDateEnd: new Date().toISOString().split('T')[0]
+
+    }
+
+  },
+
+  mounted() {
+
+    document.addEventListener('click', (e) => {
+
+       const navEl = this.$refs.navbarCollapse;
+
+       const toggleBtn = document.querySelector('.navbar-toggler');
+
+       if (navEl && navEl.classList.contains('show') && !navEl.contains(e.target) && !toggleBtn.contains(e.target)) {
+
+          this.closeNavbar();
+
+       }
+
+    });
+
+    this.fetchStoreData(); 
+
+  },
+
+  updated() {
+
+    if (this.$refs.heroCarousel) {
+
+      new bootstrap.Carousel(this.$refs.heroCarousel, { interval: 3000, ride: 'carousel' });
+
+    }
+
+  },
+
+  computed: {
+
+    categories() { return [...new Set(this.products.map(p => p.category))]; },
+
+    filteredProducts() { return this.filterCategory === 'All' ? this.products : this.products.filter(p => p.category === this.filterCategory); },
+
+    featuredProducts() { return this.products.filter(p => p.tags.includes('New') || p.tags.includes('Hot')).slice(0, 4); },
+
+    cartTotalQty() { return this.cart.reduce((sum, i) => sum + i.qty, 0); },
+
+    cartSubtotal() { return this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0); },
+
+    
+
+    enabledPayments() { return this.payments.filter(p => p.enabled === 'Y'); },
+
+    currentPayment() { return this.orderForm.paymentMethod; },
+
+
+
+    // Admin Computed
+
+    filteredMembers() {
+
+      if(!this.memberSearch) return this.adminMembers;
+
+      const s = this.memberSearch.toLowerCase();
+
+      return this.adminMembers.filter(m => m.name.toLowerCase().includes(s) || m.phone.includes(s));
+
+    },
+
+    filteredAdminOrders() {
+
+      let orders = this.adminOrders;
+
+      if (this.adminOrderFilter !== 'All') {
+
+         orders = orders.filter(o => o.status === this.adminOrderFilter);
+
       }
+
+      if (this.adminOrderSearch) {
+
+         const s = this.adminOrderSearch.toLowerCase();
+
+         orders = orders.filter(o => o.orderId.toLowerCase().includes(s) || o.customer.toLowerCase().includes(s) || o.contact.includes(s));
+
+      }
+
+      return orders;
+
+    },
+
+    statsSummary() {
+
+      if (!this.adminOrders || this.adminOrders.length === 0) return { totalRevenue: 0, totalOrders: 0, topProducts: [], topMembers: [] };
+
+      
+
+      const start = new Date(this.statsDateStart); start.setHours(0,0,0,0);
+
+      const end = new Date(this.statsDateEnd); end.setHours(23,59,59,999);
+
+      
+
+      let rev = 0, count = 0, prodMap = {}, memberSpendingMap = {};
+
+      
+
+      this.adminOrders.forEach(o => {
+
+        const d = new Date(o.date);
+
+        if (d >= start && d <= end && o.status !== '已取消') {
+
+          rev += Number(o.total || 0);
+
+          count++;
+
+          const lines = (o.content || "").split('\n');
+
+          lines.forEach(line => {
+
+             const match = line.match(/^(.+?)\s.*x(\d+)/);
+
+             if(match) {
+
+               const name = match[1].trim();
+
+               const qty = parseInt(match[2]) || 0;
+
+               prodMap[name] = (prodMap[name] || 0) + qty;
+
+             }
+
+          });
+
+          const phoneMatch = o.contact.match(/電話:\s*([0-9\-]+)/);
+
+          if (phoneMatch) {
+
+             const phone = phoneMatch[1].trim();
+
+             if (!memberSpendingMap[phone]) memberSpendingMap[phone] = {name: o.customer, spending: 0};
+
+             memberSpendingMap[phone].spending += Number(o.total || 0);
+
+          }
+
+        }
+
+      });
+
+      
+
+      const topProd = Object.keys(prodMap).map(k => ({name: k, qty: prodMap[k]})).sort((a,b)=>b.qty - a.qty).slice(0, 10);
+
+      const topMem = Object.values(memberSpendingMap).sort((a,b)=>b.spending - a.spending).slice(0, 10);
+
+      
+
+      return { totalRevenue: rev, totalOrders: count, topProducts: topProd, topMembers: topMem };
+
     }
-  }
 
-  const elId = `qty_${wid}_${pid}_${size}`;
-  const el = document.getElementById(elId);
-  if (el) {
-    const currentVal = Number(el.value || el.innerText || 0);
-    const newVal = currentVal + delta;
-    if (el.tagName === 'INPUT') {
-      el.value = newVal;
-      if (newVal > 0) el.classList.add('qty-positive');
-      else el.classList.remove('qty-positive');
-      el.classList.add('qty-saved');
-      setTimeout(() => el.classList.remove('qty-saved'), 1000);
-    } else {
-      el.innerText = newVal;
+  },
+
+  methods: {
+
+    // 核心 API 請求函式 (Fetch Version)
+
+    async fetchApi(action, payload = {}) {
+
+      if(!GAS_API_URL || GAS_API_URL.includes("您的_GAS_API")) {
+
+         alert("尚未設定 GAS API 網址");
+
+         return { success: false, error: "No API URL" };
+
+      }
+
+      this.loading = true;
+
+      try {
+
+        // 使用 POST text/plain 避免 CORS preflight
+
+        const response = await fetch(GAS_API_URL, {
+
+          method: 'POST',
+
+          body: JSON.stringify({ action: action, data: payload }),
+
+          headers: { "Content-Type": "text/plain" }
+
+        });
+
+        const res = await response.json();
+
+        this.loading = false;
+
+        return res;
+
+      } catch (err) {
+
+        this.loading = false;
+
+        console.error(err);
+
+        return { success: false, error: "Network Error" };
+
+      }
+
+    },
+
+
+
+    goPage(p) { this.page = p; this.closeNavbar(); },
+
+    closeNavbar() {
+
+       const navEl = this.$refs.navbarCollapse;
+
+       if (navEl && navEl.classList.contains('show')) {
+
+          const bsCollapse = new bootstrap.Collapse(navEl, {toggle: false});
+
+          bsCollapse.hide();
+
+       }
+
+    },
+
+
+
+    // --- Front Actions ---
+
+    async fetchStoreData() {
+
+      const res = await this.fetchApi('getStoreData', { password: this.adminPin });
+
+      if (res.products) {
+
+         this.products = res.products; this.options = res.options; this.modes = res.modes;
+
+         this.payments = res.payments || [];
+
+         this.categoriesList = res.categories;
+
+         this.config = res.config;
+
+         if(res.config.rawConfig) this.adminConfig = res.config.rawConfig; 
+
+         if(this.modes.length > 0 && !this.orderForm.shippingMethod.name) this.orderForm.shippingMethod = this.modes[0];
+
+         if(this.enabledPayments.length > 0 && !this.orderForm.paymentMethod) this.orderForm.paymentMethod = this.enabledPayments[0];
+
+      }
+
+    },
+
+    openProductModal(item) {
+
+      this.modalItem = item; this.modalQty = 1; this.selectedOpts = {};
+
+      
+
+      this.modalOptions = [];
+
+      if (item.specs && typeof item.specs === 'object' && !Array.isArray(item.specs) && !item.specs._legacy) {
+
+         for (const [title, choices] of Object.entries(item.specs)) {
+
+            if (choices && choices.length > 0) {
+
+               this.modalOptions.push({ title: title, choices: choices });
+
+            }
+
+         }
+
+      } else {
+
+         this.modalOptions = this.options.filter(o => o.category === item.category);
+
+      }
+
+
+
+      this.modalOptions.forEach(g => { if(g.choices.length > 0) this.selectedOpts[g.title] = g.choices[0]; });
+
+      getModal('productModal').show();
+
+    },
+
+    addToCart() {
+
+      if (!this.member.name) { alert('請先登入會員才能購買'); this.showLoginModal = true; getModal('productModal').hide(); return; }
+
+      if (this.modalItem.stock < this.modalQty) { alert('庫存不足'); return; }
+
+      
+
+      for (let g of this.modalOptions) { if (!this.selectedOpts[g.title]) { alert(`請選擇 ${g.title}`); return; } }
+
+      let optStr = Object.values(this.selectedOpts).join(' / ');
+
+      this.cart.push({ ...this.modalItem, qty: this.modalQty, opts: optStr });
+
+      getModal('productModal').hide(); alert('已加入購物車');
+
+    },
+
+    async submitOrder() {
+
+      if (!this.member.name) { alert('請先登入會員'); this.showLoginModal = true; return; }
+
+      
+
+      if (this.currentPayment.needInput === 'Y' && !this.orderForm.paymentDetails) {
+
+         alert('請輸入付款資訊 (如後五碼)');
+
+         return;
+
+      }
+
+
+
+      const payload = { 
+
+         name: this.orderForm.name, phone: this.orderForm.phone, address: this.orderForm.address, 
+
+         storeName: this.orderForm.storeName, note: this.orderForm.note, 
+
+         inputType: this.orderForm.shippingMethod.inputType, 
+
+         shippingMethod: this.orderForm.shippingMethod.name, shippingFee: this.orderForm.shippingMethod.fee, 
+
+         paymentMethod: this.orderForm.paymentMethod.name,
+
+         paymentDetails: this.orderForm.paymentDetails,
+
+         subtotal: this.cartSubtotal, cart: this.cart, memberPhone: this.member.phone 
+
+      };
+
+      const res = await this.fetchApi('submitOrder', { payload });
+
+      if (res.success) { this.lastOrderId = res.orderId; this.page = 'success'; this.cart = []; } else alert(res.error);
+
+    },
+
+    async login() { const res = await this.fetchApi('login', this.loginData); if(res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res.error); },
+
+    async register() { const res = await this.fetchApi('register', this.regData); if(res.success) { alert('註冊成功'); this.showRegModal = false; this.showLoginModal = true; } else alert(res.error); },
+
+    logout() { this.member = {}; this.page = 'home'; },
+
+    async checkOrders() { const res = await this.fetchApi('getMemberOrders', { phone: this.member.phone }); if(res.success) { this.historyOrders = res.orders; this.page = 'history'; } },
+
+
+
+    // --- Admin Actions ---
+
+    async adminLogin() {
+
+       const res = await this.fetchApi('getStoreData', { password: this.adminPin });
+
+       if (res.isAdmin) {
+
+          this.isAdmin = true; 
+
+          this.showAdminLogin = false; 
+
+          this.page = 'admin';
+
+          this.products = res.products; 
+
+          this.adminConfig = res.config.rawConfig;
+
+          this.refreshAdminData();
+
+       } else {
+
+          alert('密碼錯誤');
+
+       }
+
+    },
+
+    adminLogout() { this.isAdmin = false; this.adminPin = ''; this.page = 'home'; },
+
+    async refreshAdminData() {
+
+       const resOrders = await this.fetchApi('getAdminOrders', { password: this.adminPin });
+
+       if(resOrders.success) this.adminOrders = resOrders.orders;
+
+       
+
+       if(this.adminTab === 'members') {
+
+         const resMem = await this.fetchApi('getAdminMembers', { password: this.adminPin });
+
+         if(resMem.success) this.adminMembers = resMem.members;
+
+       }
+
+    },
+
+    async viewMemberOrders(member) {
+
+       const res = await this.fetchApi('getMemberDetailAdmin', { password: this.adminPin, targetPhone: member.phone });
+
+       if(res.success) {
+
+          this.adminMemberOrders = res.orders;
+
+          getModal('adminMemberOrderModal').show();
+
+       } else {
+
+          alert("查詢失敗");
+
+       }
+
+    },
+
+    async doAdminAction(subAction, payload) {
+
+       const res = await this.fetchApi('adminAction', { password: this.adminPin, subAction, payload });
+
+       if(res.success) { 
+
+          alert('操作成功'); 
+
+          this.fetchStoreData();
+
+          if(subAction === 'updateOrderDetails') this.refreshAdminData();
+
+          return true;
+
+       } else {
+
+          alert('失敗: ' + res.error);
+
+          return false;
+
+       }
+
+    },
+
+    async sendTestEmail() {
+
+      if(!this.adminConfig.AdminEmail) return alert("請先輸入 Email");
+
+      const res = await this.fetchApi('testEmail', { password: this.adminPin, email: this.adminConfig.AdminEmail });
+
+      if(res.success) alert("測試信已發送，請檢查收件匣 (含垃圾郵件)");
+
+      else alert("發送失敗: " + res.error);
+
+    },
+
+    
+
+    // Rich Text Editor
+
+    execCmd(cmd, val) { document.execCommand(cmd, false, val); },
+
+    updateAboutUsContent(e) { this.adminConfig.AboutUs = e.target.innerHTML; },
+
+    updateNewsContent(e) { this.adminConfig.PageNews = e.target.innerHTML; },
+
+    updateGuideContent(e) { this.adminConfig.PageGuide = e.target.innerHTML; },
+
+    
+
+    initEditors() {
+
+       const setHTML = (id, html) => { const el = document.getElementById(id); if(el && html) el.innerHTML = html; };
+
+       setHTML('aboutEditor', this.adminConfig.AboutUs);
+
+       setHTML('newsEditor', this.adminConfig.PageNews);
+
+       setHTML('guideEditor', this.adminConfig.PageGuide);
+
+    },
+
+    
+
+    syncEditors() {
+
+       const getHTML = (id) => document.getElementById(id)?.innerHTML || "";
+
+       this.adminConfig.AboutUs = getHTML('aboutEditor');
+
+       this.adminConfig.PageNews = getHTML('newsEditor');
+
+       this.adminConfig.PageGuide = getHTML('guideEditor');
+
+    },
+
+    
+
+    // Dynamic Welcome Images
+
+    addWelcomeImgInput() { this.welcomeImgInputs.push(''); },
+
+    removeWelcomeImgInput(index) { this.welcomeImgInputs.splice(index, 1); },
+
+    
+
+    saveConfig() { 
+
+       this.syncEditors();
+
+       this.adminConfig.WelcomeImage = this.welcomeImgInputs.filter(url => url.trim() !== '').join(',');
+
+       this.doAdminAction('saveConfig', this.adminConfig); 
+
+    },
+
+    
+
+    // Product Edit
+
+    editProduct(p) { 
+
+      this.editingProd = JSON.parse(JSON.stringify(p)); 
+
+      if(!this.editingProd.status) this.editingProd.status='Y';
+
+      if(!this.editingProd.specsObj) this.editingProd.specsObj = {};
+
+      if(this.editingProd.specs && !Array.isArray(this.editingProd.specs) && !this.editingProd.specs._legacy) {
+
+         this.editingProd.specsObj = this.editingProd.specs;
+
+      }
+
+      getModal('adminProdModal').show(); 
+
+    },
+
+    toggleSpecGroup(title, allChoices, checked) {
+
+       if (checked) { this.editingProd.specsObj[title] = [...allChoices]; } else { delete this.editingProd.specsObj[title]; }
+
+    },
+
+    toggleSpecChoice(title, choice, checked) {
+
+       if (!this.editingProd.specsObj[title]) return;
+
+       if (checked) { if (!this.editingProd.specsObj[title].includes(choice)) this.editingProd.specsObj[title].push(choice); } 
+
+       else { const idx = this.editingProd.specsObj[title].indexOf(choice); if (idx > -1) this.editingProd.specsObj[title].splice(idx, 1); }
+
+    },
+
+    async saveProduct() { 
+
+       this.editingProd.specs = JSON.stringify(this.editingProd.specsObj);
+
+       const success = await this.doAdminAction('saveProduct', this.editingProd);
+
+       if(success) getModal('adminProdModal').hide();
+
+    },
+
+    async deleteProduct(p) { if(confirm('確定刪除?')) this.doAdminAction('deleteProduct', {rowIndex: p.rowIndex}); },
+
+    
+
+    // Category Edit
+
+    editCategory(c) { this.editingCat = JSON.parse(JSON.stringify(c)); getModal('adminCatModal').show(); },
+
+    async saveCategory() { const success = await this.doAdminAction('saveCategory', this.editingCat); if(success) getModal('adminCatModal').hide(); },
+
+    async deleteCategory(c) { if(confirm('確定刪除?')) this.doAdminAction('deleteCategory', {rowIndex: c.rowIndex}); },
+
+
+
+    // Option Edit
+
+    editOption(o) { this.editingOpt = JSON.parse(JSON.stringify(o)); this.editingOpt.choicesStr = (o.choices||[]).join(','); getModal('adminOptModal').show(); },
+
+    async saveOption() { 
+
+       this.editingOpt.choices = this.editingOpt.choicesStr.split(',').map(s=>s.trim());
+
+       const success = await this.doAdminAction('saveOption', this.editingOpt);
+
+       if(success) getModal('adminOptModal').hide();
+
+    },
+
+    async deleteOption(o) { if(confirm('確定刪除?')) this.doAdminAction('deleteOption', {rowIndex: o.rowIndex}); },
+
+    
+
+    // Mode Edit
+
+    editMode(m) { this.editingMode = JSON.parse(JSON.stringify(m)); getModal('adminModeModal').show(); },
+
+    async saveMode() { const success = await this.doAdminAction('saveMode', this.editingMode); if(success) getModal('adminModeModal').hide(); },
+
+    async deleteMode(m) { if(confirm('確定刪除?')) this.doAdminAction('deleteMode', {rowIndex: m.rowIndex}); },
+
+    
+
+    // Payment Edit
+
+    editPayment(p) { this.editingPay = JSON.parse(JSON.stringify(p)); if(!this.editingPay.enabled) this.editingPay.enabled='Y'; getModal('adminPayModal').show(); },
+
+    async savePayment() { const success = await this.doAdminAction('savePayment', this.editingPay); if(success) getModal('adminPayModal').hide(); },
+
+    async deletePayment(p) { if(confirm('確定刪除?')) this.doAdminAction('deletePayment', {rowIndex: p.rowIndex}); },
+
+
+
+    // Order Edit
+
+    editOrder(o) { this.editingOrder = JSON.parse(JSON.stringify(o)); getModal('adminOrderModal').show(); },
+
+    async saveOrder() {
+
+       const success = await this.doAdminAction('updateOrderDetails', this.editingOrder);
+
+       if(success) getModal('adminOrderModal').hide();
+
+    },
+
+    async updateOrderStatus(o) {
+
+       await this.doAdminAction('updateOrderDetails', { orderId: o.orderId, status: o.status });
+
     }
+
+  },
+
+  watch: {
+
+    adminTab(newVal) {
+
+       if(newVal === 'settings') {
+
+          this.welcomeImgInputs = this.adminConfig.WelcomeImage ? this.adminConfig.WelcomeImage.split(',') : [];
+
+          setTimeout(() => this.initEditors(), 100);
+
+       }
+
+    }
+
   }
-}
 
-async function updQty(wid,pid,s,el){
-  const v=Number(el.value); 
-  if (v < 0) { alert("數量不能為負"); el.value = 0; return; }
-  el.classList.remove('qty-saved', 'qty-error'); el.classList.add('qty-saving');
-  if(v>0) el.classList.add('qty-positive'); else el.classList.remove('qty-positive');
-  
-  const res = await callApi('updateQty', {warehouseId:wid, productId:pid, size:s, value:v, operator:currentUser.displayName});
-  el.classList.remove('qty-saving');
-  
-  if(res.status==='success') {
-    el.classList.add('qty-saved'); setTimeout(()=>el.classList.remove('qty-saved'), 2000);
-  } else {
-    el.classList.add('qty-error'); alert(res.message); 
-  }
-}
+}).mount('#app');
 
-async function updRemark(wid,pid,s,val){
-  const res = await callApi('updateRemark', {warehouseId:wid, productId:pid, size:s, remark:val});
-  if(res.status!=='success') alert(res.message);
-}
-
-async function doSell(wid,pid,s,btn){
-  const container = btn.closest('.size-box'); 
-  const inp = container.querySelector('input');
-  let currentStock = Number(inp.value); 
-  if(currentStock <= 0) return alert('無庫存');
-  const qtyStr = prompt(`銷售 ${s}\n目前庫存: ${currentStock}\n請輸入銷售數量:`, "1");
-  if(qtyStr === null) return;
-  const qty = Number(qtyStr);
-  if(isNaN(qty) || qty <= 0) return alert("數量輸入錯誤");
-  if(qty > currentStock) return alert("庫存不足");
-
-  setLoading(true, "銷售中...");
-  const res = await callApi('sellItem', {fromWh:wid, productId:pid, size:s, qty:qty, operator:currentUser.displayName});
-  
-  setLoading(false);
-  if(res.status==='success'){ 
-    showToast(`已銷售 ${qty} 件`); 
-    updateLocalState(wid, pid, s, -qty); 
-    updateLocalState(SALES_WH_ID, pid, s, qty); 
-  } 
-  else { alert(res.message); inp.value=currentStock; } 
-}
-
-function renderDescSel(pid,val){ return `<select class="text-sm border rounded mt-1 bg-white w-full max-w-[200px] p-2" onchange="updDesc('${pid}',this.value)"><option value="">(無說明)</option>${dataCache.dd.descriptions.map(d=>`<option value="${escapeHtml(d)}" ${d===val?'selected':''}>${escapeHtml(d)}</option>`).join('')}</select>`; }
-async function updDesc(pid,v){ await callApi('updateDesc', {productId:pid, value:v}); }
-
-async function fetchLogs(){
-  const s = document.getElementById('logStart').value;
-  const e = document.getElementById('logEnd').value;
-  const w = document.getElementById('logWhFilter').value;
-  const t = document.getElementById('logTypeFilter').value;
-  if(!s || !e) return alert("請選擇日期區間");
-  setLoading(true, "查詢中...");
-  const res = await callApi('getLogs', {startDate:s, endDate:e, warehouseId:w, type:t});
-  setLoading(false);
-  if(res.status === 'success') renderLogs(res.data); else alert(res.message);
-}
-
-function renderLogs(rows){
-  document.getElementById('logThead').innerHTML='<tr><th>時間</th><th>商品</th><th>來源</th><th>目標</th><th>數量</th><th>操作</th></tr>';
-  if(!rows.length){ document.getElementById('logTbody').innerHTML='<tr><td colspan="6" class="text-center text-gray-400 p-4">無資料</td></tr>'; return; }
-  document.getElementById('logTbody').innerHTML=rows.map(r=>`<tr><td>${r.time}</td><td>${escapeHtml(r.product)}</td><td>${escapeHtml(r.from)}</td><td>${escapeHtml(r.to)}</td><td>${r.qty}</td><td>${escapeHtml(r.operator)}</td></tr>`).join('');
-}
-
-async function simpleAdd(fn,id,cb){ 
-  const v=document.getElementById(id).value; if(!v)return; 
-  setLoading(true); 
-  await callApi(fn, v);
-  setLoading(false);
-  cb(); 
-  document.getElementById(id).value=""; 
-}
-
-async function addWarehouseAction(){
-  const n = document.getElementById('newWhName').value;
-  const l = document.getElementById('newWhLoc').value;
-  if(!n) return alert("請輸入倉庫名稱");
-  setLoading(true, "建立倉庫(含庫存初始化)...");
-  await callApi('addWh', {name: n, location: l});
-  setLoading(false);
-  document.getElementById('newWhName').value = "";
-  document.getElementById('newWhLoc').value = "";
-  loadAllData();
-}
-
-async function addUser(){ 
-  const u=document.getElementById('newU').value, p=document.getElementById('newP').value, dn=document.getElementById('newDN').value, r=document.getElementById('newRole').value; 
-  if(!u||!p) return alert("請輸入帳號密碼"); 
-  setLoading(true); 
-  const res = await callApi('addUser', {username:u, password:p, displayName:dn, role:r});
-  setLoading(false);
-  if(res.status==='error') return alert(res.message);
-  document.getElementById('newU').value=""; document.getElementById('newP').value=""; document.getElementById('newDN').value=""; renderSettings(); 
-}
-
-async function promptAddCat(){ 
-  const n=prompt("名稱"); if(!n)return; 
-  const s=prompt("尺寸 (逗號分隔)"); if(s!==null){ 
-    setLoading(true); 
-    await callApi('addCat', {n, s});
-    setLoading(false);
-    loadAllData();
-  }
-}
-
-function renderDropdowns(){
-  const d=dataCache.dd;
-  const whOpts = '<option value="">不限倉庫</option>' + d.warehouses.filter(w=>w.id!==SALES_WH_ID).map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join('');
-  document.getElementById('filterWh').innerHTML=whOpts.replace("不限倉庫","全部倉庫");
-  document.getElementById('logWhFilter').innerHTML=whOpts;
-  document.getElementById('filterCat').innerHTML='<option value="">全部分類</option>'+Object.keys(d.categories).map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  document.getElementById('addCatSelect').innerHTML=Object.keys(d.categories).map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  document.getElementById('addDescSelect').innerHTML=d.descriptions.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
-}
-
-async function renderSettings(){
-  const d=dataCache.dd;
-  document.getElementById('whList').innerHTML = d.warehouses.filter(w => w.id !== SALES_WH_ID).map(w => `<div class="flex justify-between p-3 bg-gray-50 border rounded-lg text-sm items-center"><span>${escapeHtml(w.name)} <span class="text-xs text-gray-400 block">(${escapeHtml(w.location||'無地點')})</span></span><div class="flex gap-3"><button onclick="editWh('${w.id}','${escapeHtml(w.name)}')" class="text-blue-500 p-1">✏️</button><button onclick="delObj('deleteWh','${w.id}',loadAllData)" class="text-red-500 p-1">✕</button></div></div>`).join('');
-  document.getElementById('catList').innerHTML=Object.keys(d.categories).map(c=>`<div class="flex justify-between p-3 border-b text-sm items-center"><div><span class="font-bold text-base block mb-1">${escapeHtml(c)}</span> <span class="text-xs text-gray-500 break-all">(${d.categories[c].map(escapeHtml).join(',')})</span></div><div class="flex gap-3 ml-2 shrink-0"><button onclick="editCat('${escapeHtml(c)}','${d.categories[c]}')" class="text-blue-500 p-1">✏️</button><button onclick="delObj('deleteCat','${c}',loadAllData)" class="text-red-500 p-1">✕</button></div></div>`).join('');
-  document.getElementById('descList').innerHTML=d.descriptions.map(c=>`<span class="bg-gray-100 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 m-1">${escapeHtml(c)}<button onclick="editDesc('${escapeHtml(c)}')" class="text-blue-500">✏️</button><button onclick="delObj('deleteDesc','${c}',loadAllData)" class="text-red-500 font-bold">×</button></span>`).join('');
-  document.getElementById('remList').innerHTML=d.remarks.map(c=>`<span class="bg-gray-100 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 m-1">${escapeHtml(c)}<button onclick="delObj('deleteRem','${c}',loadAllData)" class="text-red-500 font-bold">×</button></span>`).join('');
-  
-  const userRes = await callApi('getUsers');
-  if(userRes.status==='success'){
-    const u = userRes.data;
-    document.getElementById('userList').innerHTML=u.map(x=>`<div class="flex justify-between text-sm border-b p-3 items-center"><div><span class="font-bold block">${escapeHtml(x.displayName)}</span><span class="text-gray-400 text-xs">${x.username} / ${x.role}</span></div><div class="flex gap-3"><button onclick="editUser('${x.username}')" class="text-blue-500 p-1">✏️</button>${x.username!=='admin' ? `<button onclick="delObj('deleteUser','${x.username}',renderSettings)" class="text-red-500 p-1">✕</button>` : ''}</div></div>`).join('');
-  }
-}
-
-async function editWh(id,old){ const n=prompt("修改名稱",old); if(n&&n!==old){ setLoading(true); await callApi('updateWh', {id,name:n}); setLoading(false); loadAllData(); } }
-async function editCat(old,sz){ const n=prompt("修改分類",old); if(!n)return; const s=prompt("修改尺寸",sz); if(s!==null){ setLoading(true); await callApi('updateCat', {oldName:old,newName:n,sizes:s}); setLoading(false); loadAllData(); } }
-async function editDesc(old){ const n=prompt("修改",old); if(n&&n!==old){ setLoading(true); await callApi('updateDesc', {oldVal:old,newVal:n}); setLoading(false); loadAllData(); } }
-async function editUser(u){ const p=prompt("重設密碼(留空不改)"); if(p){ setLoading(true); await callApi('updateUser', {username:u,password:p}); setLoading(false); alert("已修改"); } }
-async function delObj(fn,id,cb){ if(confirm("確定刪除?")){ setLoading(true); const res = await callApi(fn, fn.includes('Wh')?{id}:id); setLoading(false); if(res&&res.status==='error') alert(res.message); else cb(); } }
-
-function genAddTable(){
-  const c=document.getElementById('addCatSelect').value; if(!c)return;
-  const sizes=dataCache.dd.categories[c]; const whs=dataCache.dd.warehouses.filter(w=>w.id!==SALES_WH_ID);
-  let h='<table class="w-full text-sm text-center mb-4 min-w-[500px]"><thead><tr><th></th>'+sizes.map(s=>`<th>${s}</th>`).join('')+'</tr></thead><tbody>';
-  whs.forEach(w=>{h+=`<tr><td class="text-left font-bold py-2 whitespace-nowrap px-2">${escapeHtml(w.name)}</td>`+sizes.map(s=>`<td><input type="number" inputmode="numeric" min="0" data-w="${w.id}" data-s="${s}" class="w-12 border p-1 rounded text-center new-qty" placeholder="0"></td>`).join('')+`</tr>`;});
-  document.getElementById('addSizeTable').innerHTML=h+'</tbody></table><button onclick="subProd()" class="btn btn-primary w-full py-3">確認新增</button>';
-  document.getElementById('addSizeTable').classList.remove('hidden');
-}
-
-async function subProd(){
-  const n=document.getElementById('addName').value, pr=document.getElementById('addPrice').value, c=document.getElementById('addCatSelect').value; 
-  if(!n.trim()||pr==="") return alert("請輸入名稱與價格");
-  const list = dataCache.dd.categories[c].map(s=>{ const qMap = []; document.querySelectorAll(`.new-qty[data-s="${s}"]`).forEach(i=>{if(i.value>0)qMap.push({warehouseId:i.dataset.w, qty:i.value})}); return {size:s, qtyMap:qMap}; });
-  setLoading(true, "建立商品...");
-  const res = await callApi('addProduct', {name:n,cat:c,color:document.getElementById('addColor').value,price:pr,description:document.getElementById('addDescSelect').value,sizeList:list});
-  setLoading(false);
-  showToast(res.message); 
-  loadAllData(); 
-  document.querySelector('[data-target="summarySection"]').click(); 
-  document.getElementById('addName').value=""; document.getElementById('addPrice').value=""; document.getElementById('addSizeTable').classList.add('hidden'); 
-}
-
-function renderAllStatsTable(){
-  if(!allStatsData) return;
-  let summaryHTML = `<div class="stats-grid"><div class="stat-card cursor-pointer hover:bg-blue-100 ${statsFilterWh===null ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-400' : 'bg-blue-50 border-blue-200'}" onclick="setStatsFilter(null)"><div class="text-sm text-gray-500">全部總庫存</div><div class="text-2xl font-bold text-blue-700">${allStatsData.grandTotal}</div></div>`;
-  allStatsData.whStats.forEach(w => { const isActive = statsFilterWh === w.id; summaryHTML += `<div class="stat-card cursor-pointer hover:bg-gray-100 transition ${isActive ? 'bg-white ring-2 ring-blue-500 border-transparent' : ''}" onclick="setStatsFilter('${w.id}')"><div class="text-sm text-gray-500">${escapeHtml(w.name)}</div><div class="text-xl font-bold">${w.totalQty}</div></div>`; });
-  summaryHTML += `</div>`;
-  document.getElementById('allStatsSummary').innerHTML = summaryHTML;
-  const rawKey = document.getElementById('allStatsSearch').value.toLowerCase().trim();
-  const keys = rawKey ? rawKey.split(/\s+/) : []; 
-  const rows = allStatsData.rows.filter(r => { const s = (r.name + r.color).toLowerCase(); return keys.length === 0 || keys.every(k => s.includes(k)); });
-  if(!rows.length){ document.getElementById('allStatsContainer').innerHTML = '<div class="text-center py-4 text-gray-400">無資料</div>'; return; }
-  let h = `<div class="table-container"><table class="data-table sticky-head"><thead><tr><th>商品名稱</th><th>顏色</th><th>售價</th>`+allStatsData.headers.map(s=>`<th class="text-center">${s}</th>`).join('')+`<th class="text-right">合計</th></tr></thead><tbody>`;
-  rows.forEach(r => { const dataSrc = statsFilterWh ? (r.whData[statsFilterWh] || {}) : r.sizes; let rowTotal = 0; if(statsFilterWh) { rowTotal = Object.values(dataSrc).reduce((a,b)=>a+Number(b),0); } else { rowTotal = r.total; } h += `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.color||'')}</td><td>${r.price||''}</td>`+allStatsData.headers.map(s=>{const q = dataSrc[s] || 0; return `<td class="text-center ${q>0?'font-bold text-green-600':'text-gray-300'}">${q}</td>`; }).join('')+`<td class="text-right font-bold">${rowTotal}</td></tr>`; });
-  document.getElementById('allStatsContainer').innerHTML = h+`</tbody></table></div>`;
-}
-
-function setStatsFilter(wid){ statsFilterWh = wid; renderAllStatsTable(); }
-
-function exportAllStats(){ 
-  if(!allStatsData||!allStatsData.rows.length)return alert("無資料"); 
-  const headers = ["商品名稱","顏色","售價",...allStatsData.headers,"合計"];
-  const rows = allStatsData.rows.map(r => { const dataSrc = statsFilterWh ? (r.whData[statsFilterWh] || {}) : r.sizes; const rowTotal = statsFilterWh ? Object.values(dataSrc).reduce((a,b)=>a+Number(b),0) : r.total; return [`"${r.name}"`, `"${r.color||''}"`, r.price||0,...allStatsData.headers.map(s=>dataSrc[s]||0),rowTotal].join(","); });
-  const csv = "\uFEFF" + headers.join(",") + "\n" + rows.join("\n"); 
-  const prefix = statsFilterWh ? (allStatsData.whStats.find(w=>w.id===statsFilterWh)?.name || "倉庫") : "全倉";
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`${prefix}統計_${new Date().toISOString().slice(0,10)}.csv`; a.click(); 
-}
-
-function openTrans(wid,wn,pid,pn,s,max){ const others = dataCache.dd.warehouses.filter(w=>w.id!==wid && w.id!==SALES_WH_ID); if(!others.length)return alert('無其他倉庫'); document.getElementById('modalRoot').innerHTML=`<div class="modal-overlay"><div class="modal-box"><h3 class="font-bold mb-4 text-xl">調撥庫存</h3><div class="mb-4 bg-gray-50 p-3 rounded text-sm"><p class="font-bold text-blue-800">${escapeHtml(pn)} (${s})</p><p class="text-gray-500">來源: ${escapeHtml(wn)}</p></div><label class="block mb-4 text-sm font-medium">目標倉庫 <select id="toW" class="border p-2 w-full rounded mt-1 bg-white h-10">${others.map(w=>`<option value="${w.id}">${escapeHtml(w.name)}</option>`).join('')}</select></label><label class="block mb-6 text-sm font-medium">數量 <input id="tQ" type="number" inputmode="numeric" value="1" max="${max}" min="1" class="border p-2 w-full rounded mt-1 h-10 text-center font-bold text-lg"></label><div class="flex justify-end gap-3"><button class="btn btn-ghost px-4" onclick="closeModal()">取消</button><button class="btn btn-primary px-6 py-2" onclick="doTrans('${wid}','${pid}','${s}')">確定調撥</button></div></div></div>`; }
-
-async function doTrans(fid,pid,s){ 
-  const tid=document.getElementById('toW').value;
-  const qtyInput = document.getElementById('tQ');
-  const qty=Number(qtyInput.value); 
-  const maxQty = Number(qtyInput.getAttribute('max'));
-
-  if(qty <= 0) return alert("調撥數量必須大於 0");
-  if(qty > maxQty) return alert(`庫存不足 (最大可調撥: ${maxQty})`);
-  if(fid === tid) return alert("來源與目標倉庫不能相同");
-
-  closeModal(); 
-  setLoading(true,"調撥中..."); 
-  const res = await callApi('transfer', {from:fid, to:tid, productId:pid, size:s, qty:qty, operator:currentUser.displayName});
-  setLoading(false); 
-  if(res.status==='success'){ 
-    showToast('調撥完成'); 
-    updateLocalState(fid, pid, s, -qty); 
-    updateLocalState(tid, pid, s, qty);  
-  } else { alert(res.message); }
-}
-
-function closeModal(){ document.getElementById('modalRoot').innerHTML=""; }
-function navClick(e){ document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); e.target.classList.add('active'); document.querySelectorAll('section').forEach(x=>x.classList.add('hidden')); document.getElementById(e.target.dataset.target).classList.remove('hidden'); const t = e.target.dataset.target; if(t === 'allStatsSection'){ setLoading(true); google.script.run.withSuccessHandler(res=>{ setLoading(false); allStatsData=res.data; renderAllStatsTable(); }).getAllWarehouseSummary(); } if(t === 'logSection') fetchLogs(); }
-function debounce(f,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f(...a),ms)}}
-function showToast(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
-
-// Fix for navClick when calling API directly (removing google.script.run logic inside navClick)
-async function navClick(e){ 
-  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); 
-  e.target.classList.add('active'); 
-  document.querySelectorAll('section').forEach(x=>x.classList.add('hidden')); 
-  document.getElementById(e.target.dataset.target).classList.remove('hidden'); 
-  const t = e.target.dataset.target; 
-  if(t === 'allStatsSection'){ 
-    setLoading(true); 
-    const res = await callApi('getAllStats');
-    setLoading(false); 
-    allStatsData=res.data; 
-    renderAllStatsTable(); 
-  } 
-  if(t === 'logSection') fetchLogs(); 
-}
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
+
 </html>
