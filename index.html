@@ -498,7 +498,7 @@
       <div class="mb-3"><label>分類名稱</label><input class="form-control" v-model="editingCat.name" placeholder="如: 上身類"></div>
   </div><div class="modal-footer"><button class="btn btn-primary" @click="saveCategory">儲存</button></div></div></div></div>
 
-  <div class="modal fade" id="adminOrderModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">訂單編輯 / 配貨</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+  <div class="modal fade" id="adminOrderModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">訂單編輯 / 配貨</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
       <div class="alert alert-secondary py-2 mb-3 small">{{ editingOrder.orderId }} - {{ editingOrder.customer }}</div>
       
       <div class="mb-3">
@@ -513,16 +513,50 @@
       </div>
 
       <div class="mb-3">
-         <label class="form-label">訂單內容 (品項/數量/價格)</label>
-         <textarea class="form-control font-monospace small" v-model="editingOrder.content" rows="6"></textarea>
-         <div class="form-text">請小心編輯，每一行代表一個商品項目。</div>
+        <label class="form-label">訂單內容 (獨立商品編輯)</label>
+        <div class="border rounded p-2 bg-light">
+           <div v-for="(item, idx) in editingOrder.parsedItems" :key="idx" class="d-flex align-items-center mb-2 gap-2 flex-wrap">
+              <template v-if="item.raw !== undefined">
+                 <input type="text" class="form-control form-control-sm flex-grow-1" v-model="item.raw" placeholder="自訂文字">
+              </template>
+              <template v-else>
+                 <input type="text" class="form-control form-control-sm" style="flex: 2; min-width:100px;" v-model="item.name" placeholder="商品名稱">
+                 <input type="text" class="form-control form-control-sm" style="flex: 1; min-width:70px;" v-model="item.opts" placeholder="規格">
+                 <div class="input-group input-group-sm" style="flex: 1; min-width: 90px;">
+                    <span class="input-group-text">x</span>
+                    <input type="number" class="form-control" v-model.number="item.qty" min="1" @input="recalcOrderTotal">
+                 </div>
+                 <div class="input-group input-group-sm" style="flex: 1; min-width: 100px;">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="form-control" v-model.number="item.price" min="0" @input="recalcOrderTotal">
+                 </div>
+                 <div class="fw-bold text-end text-danger" style="width: 60px;">${{ item.qty * item.price }}</div>
+              </template>
+              <button type="button" class="btn btn-sm btn-outline-danger" @click="editingOrder.parsedItems.splice(idx, 1); recalcOrderTotal()"><i class="bi bi-x-lg"></i></button>
+           </div>
+           <button type="button" class="btn btn-sm btn-secondary w-100 mt-2" @click="editingOrder.parsedItems.push({name: '', opts: '', qty: 1, price: 0}); recalcOrderTotal()">＋ 新增商品項目</button>
+        </div>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">運費</label>
+          <div class="input-group input-group-sm">
+             <span class="input-group-text">$</span>
+             <input type="number" class="form-control" v-model.number="editingOrder.shippingFee" @input="recalcOrderTotal">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">付款資訊</label>
+          <input type="text" class="form-control form-control-sm" v-model="editingOrder.paymentInfo">
+        </div>
       </div>
 
       <div class="mb-3">
-         <label class="form-label">總金額</label>
+         <label class="form-label">總金額 (自動計算)</label>
          <div class="input-group">
             <span class="input-group-text">$</span>
-            <input type="number" class="form-control" v-model="editingOrder.total">
+            <input type="number" class="form-control text-danger fw-bold" v-model.number="editingOrder.total" readonly>
          </div>
       </div>
 
@@ -1037,9 +1071,75 @@ createApp({
     async savePayment() { const success = await this.doAdminAction('savePayment', this.editingPay); if(success) getModal('adminPayModal').hide(); },
     async deletePayment(p) { if(confirm('確定刪除?')) this.doAdminAction('deletePayment', {rowIndex: p.rowIndex}); },
 
-    // Order Edit
-    editOrder(o) { this.editingOrder = JSON.parse(JSON.stringify(o)); getModal('adminOrderModal').show(); },
+    // [已修正] Order Edit 邏輯
+    recalcOrderTotal() {
+       let sum = 0;
+       if (this.editingOrder && this.editingOrder.parsedItems) {
+           this.editingOrder.parsedItems.forEach(i => {
+               if (i.raw === undefined) {
+                   sum += (i.qty * i.price);
+               }
+           });
+       }
+       sum += Number(this.editingOrder.shippingFee || 0);
+       this.editingOrder.total = sum;
+    },
+    editOrder(o) { 
+        this.editingOrder = JSON.parse(JSON.stringify(o)); 
+        this.editingOrder.parsedItems = [];
+        this.editingOrder.shippingFee = 0;
+        this.editingOrder.paymentInfo = "";
+
+        const lines = (this.editingOrder.content || "").split('\n');
+        let parsingItems = true;
+
+        lines.forEach(line => {
+            if (line.startsWith('----------------')) {
+                parsingItems = false;
+                return;
+            }
+            if (parsingItems) {
+                // 解析: 品名 [規格] x數量 ($小計)
+                const match = line.match(/^(.*?)(?:\s+\[(.*?)\])?\s+x(\d+)\s+\(\$(\d+)\)$/);
+                if (match) {
+                    const qty = parseInt(match[3], 10);
+                    const subtotal = parseInt(match[4], 10);
+                    this.editingOrder.parsedItems.push({
+                        name: match[1].trim(),
+                        opts: match[2] ? match[2].trim() : '',
+                        qty: qty,
+                        price: qty > 0 ? subtotal / qty : 0
+                    });
+                } else if (line.trim() !== '') {
+                    this.editingOrder.parsedItems.push({ raw: line });
+                }
+            } else {
+                if (line.startsWith('運費: $')) {
+                    this.editingOrder.shippingFee = parseInt(line.replace('運費: $', ''), 10);
+                } else if (line.startsWith('付款: ')) {
+                    this.editingOrder.paymentInfo = line.replace('付款: ', '');
+                }
+            }
+        });
+
+        getModal('adminOrderModal').show(); 
+    },
     async saveOrder() {
+       // 將拆解的陣列再次組裝回字串
+       let contentStr = this.editingOrder.parsedItems.map(i => {
+           if (i.raw !== undefined) return i.raw;
+           let specStr = i.opts ? `[${i.opts}]` : '';
+           return `${i.name} ${specStr} x${i.qty} ($${i.qty * i.price})`;
+       }).join("\n");
+
+       contentStr += `\n----------------\n運費: $${this.editingOrder.shippingFee || 0}`;
+       
+       if (this.editingOrder.paymentInfo) {
+           contentStr += `\n----------------\n付款: ${this.editingOrder.paymentInfo}`;
+       }
+
+       this.editingOrder.content = contentStr;
+
        const success = await this.doAdminAction('updateOrderDetails', this.editingOrder);
        if(success) getModal('adminOrderModal').hide();
     },
