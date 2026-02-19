@@ -17,11 +17,9 @@
     .brand-logo { font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 2px; font-size: 1.5rem; color: #000; text-decoration: none; }
     .brand-logo img { height: 40px; margin-right: 10px; object-fit: contain; }
 
-    /* [修改] 讓輪播圖容器底色統一，並允許內部圖片完整適應 */
     .hero-section { height: 75vh; width: 100%; position: relative; background: #f8f9fa; }
     .carousel-item, .carousel-inner, .hero-section .carousel { height: 100%; }
     .carousel-item { background: #f8f9fa; }
-    /* [修改] object-fit 改為 contain 避免裁切 */
     .carousel-item img { object-fit: contain; height: 100%; width: 100%; }
     
     .hero-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 10; display: flex; align-items: center; justify-content: center; pointer-events: none; }
@@ -73,9 +71,8 @@
     .activity-img-card { width: 100%; height: auto; object-fit: contain; background: #fff; cursor: zoom-in; transition: transform 0.2s; }
     .activity-img-card:hover { transform: scale(1.02); }
 
-    /* [修改] 針對手機版適應調整 */
     @media (max-width: 768px) { 
-      .hero-section { height: 55vh; } /* 縮減手機版高度，避免使用 contain 時上下留白過多 */
+      .hero-section { height: 55vh; } 
       .hero-title { font-size: 2.5rem; } 
       .navbar-collapse { background: #fff; padding: 15px; } 
       .admin-sidebar { min-height: auto; padding: 10px; } 
@@ -761,13 +758,13 @@ createApp({
     }
   },
   methods: {
-    // 核心 API 請求函式 (Fetch Version)
-    async fetchApi(action, payload = {}) {
+    // 核心 API 請求函式 (支援靜默背景請求)
+    async fetchApi(action, payload = {}, silent = false) {
       if(!GAS_API_URL || GAS_API_URL.includes("您的_GAS_API")) {
-         alert("尚未設定 GAS API 網址");
+         if (!silent) alert("尚未設定 GAS API 網址");
          return { success: false, error: "No API URL" };
       }
-      this.loading = true;
+      if (!silent) this.loading = true;
       try {
         const response = await fetch(GAS_API_URL, {
           method: 'POST',
@@ -775,12 +772,27 @@ createApp({
           headers: { "Content-Type": "text/plain" } // 避免 Preflight
         });
         const res = await response.json();
-        this.loading = false;
+        if (!silent) this.loading = false;
         return res;
       } catch (err) {
-        this.loading = false;
+        if (!silent) this.loading = false;
         console.error(err);
         return { success: false, error: "Network Error" };
+      }
+    },
+
+    // 背景靜默更新商品資料 (包含庫存)
+    async refreshProductsSilent() {
+      const res = await this.fetchApi('getStoreData', { password: this.adminPin }, true);
+      if (res.products) {
+         this.products = res.products;
+         if (this.modalItem) {
+            const updatedItem = this.products.find(p => p.rowIndex === this.modalItem.rowIndex);
+            if (updatedItem) {
+               this.modalItem.stock = updatedItem.stock;
+               if (updatedItem.specsObj) this.modalItem.specsObj = updatedItem.specsObj;
+            }
+         }
       }
     },
 
@@ -863,8 +875,18 @@ createApp({
          paymentDetails: this.orderForm.paymentDetails,
          subtotal: this.cartSubtotal, cart: this.cart, memberPhone: this.member.phone 
       };
+      
       const res = await this.fetchApi('submitOrder', { payload });
-      if (res.success) { this.lastOrderId = res.orderId; this.page = 'success'; this.cart = []; } else alert(res.error);
+      if (res.success) { 
+         this.lastOrderId = res.orderId; 
+         this.page = 'success'; 
+         this.cart = []; 
+         
+         // 成功送出後，在背景靜默更新商品庫存 (包含所有獨立庫存)
+         this.refreshProductsSilent();
+      } else {
+         alert(res.error);
+      }
     },
     async login() { const res = await this.fetchApi('login', this.loginData); if(res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res.error); },
     async register() { const res = await this.fetchApi('register', this.regData); if(res.success) { alert('註冊成功'); this.showRegModal = false; this.showLoginModal = true; } else alert(res.error); },
