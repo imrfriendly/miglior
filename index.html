@@ -53,7 +53,7 @@
     .spec-btn { border: 1px solid #ddd; background: #fff; color: #333; margin-right: 8px; margin-bottom: 8px; border-radius: 0; min-width: 40px; }
     .spec-btn.active { border-color: #000; background: #000; color: #fff; }
     .cart-badge { position: absolute; top: 0; right: 0; font-size: 0.7rem; transform: translate(50%, -10%); }
-    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
     .footer { background-color: #f8f9fa; padding: 40px 0; margin-top: auto; border-top: 1px solid #e9ecef; }
     .footer a { color: #6c757d; text-decoration: none; transition: 0.2s; }
     .footer a:hover { color: #2c3e50; }
@@ -85,7 +85,10 @@
 <body>
 
 <div id="app">
-  <div v-if="loading" class="loading-overlay"><div class="spinner-border text-dark" role="status"></div></div>
+  <div v-if="loading" class="loading-overlay">
+      <div class="spinner-border text-dark" role="status"></div>
+      <div class="mt-3 small text-muted">連線中...</div>
+  </div>
 
   <nav class="navbar navbar-expand-lg fixed-top" v-if="page !== 'admin'">
     <div class="container">
@@ -222,9 +225,9 @@
 
             <div class="mb-3"><label class="form-label">備註</label><textarea class="form-control rounded-0" v-model="orderForm.note" rows="2"></textarea></div>
             <hr><div class="d-flex justify-content-between fs-4 fw-bold mb-4"><span>總金額</span><span class="text-danger">${{ cartSubtotal + (orderForm.shippingMethod.fee || 0) }}</span></div>
-            <button type="submit" class="btn btn-dark w-100 py-3 text-uppercase rounded-0 fw-bold" :disabled="isSubmitting">
+            <button type="submit" class="btn btn-dark w-100 py-3 text-uppercase rounded-0 fw-bold" :disabled="isSubmitting || config.systemStatus === 'Closed'">
                 <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-                確認下單
+                {{ config.systemStatus === 'Closed' ? '目前系統暫停接單' : '確認下單' }}
             </button>
           </form>
         </div>
@@ -329,7 +332,7 @@
          <h3 class="mb-4">網站設定</h3>
          <div class="bg-white p-4 rounded shadow-sm" style="max-width: 600px">
             <div class="mb-3"><label class="form-label">商店名稱</label><input class="form-control" v-model="adminConfig.StoreName"></div>
-            <div class="mb-3"><label class="form-label">網站狀態</label><select class="form-select" v-model="adminConfig.SystemStatus"><option value="Open">營業中</option><option value="Closed">維護中</option></select></div>
+            <div class="mb-3"><label class="form-label">網站狀態</label><select class="form-select" v-model="adminConfig.SystemStatus"><option value="Open">營業中</option><option value="Closed">維護中 (不接單)</option></select></div>
             <div class="mb-3">
               <label class="form-label">訂單通知 Email</label>
               <div class="input-group">
@@ -694,7 +697,7 @@ createApp({
     enabledPayments() { return this.payments.filter(p => p.enabled === 'Y'); },
     currentPayment() { return this.orderForm.paymentMethod; },
     
-    // [重點] 動態扣除購物車內的數量，讓畫面顯示真正的「剩餘可買庫存」
+    // 即時扣除購物車內的數量，讓畫面顯示真正的「剩餘可買庫存」
     currentStock() {
        if(!this.modalItem) return 0;
        
@@ -785,10 +788,13 @@ createApp({
     }
   },
   methods: {
-    // 核心 API 請求函式 (支援靜默背景請求 silent mode)
+    // 核心 API 請求函式 (加入 try-catch 與 finally 確保停止轉圈)
     async fetchApi(action, payload = {}, silent = false) {
       if(!GAS_API_URL || GAS_API_URL.includes("您的_GAS_API")) {
-         if (!silent) alert("尚未設定 GAS API 網址");
+         if (!silent) {
+             this.loading = false;
+             alert("尚未設定 GAS API 網址！請於程式碼下方替換 GAS_API_URL。");
+         }
          return { success: false, error: "No API URL" };
       }
       if (!silent) this.loading = true;
@@ -796,28 +802,30 @@ createApp({
         const response = await fetch(GAS_API_URL, {
           method: 'POST',
           body: JSON.stringify({ action: action, data: payload }),
-          headers: { "Content-Type": "text/plain" } // 避免 Preflight
+          headers: { "Content-Type": "text/plain" }
         });
+        if (!response.ok) throw new Error("HTTP Status " + response.status);
         const res = await response.json();
-        if (!silent) this.loading = false;
         return res;
       } catch (err) {
+        console.error("API Error:", err);
+        // 如果是跨域錯誤，通常是因為 GAS 權限沒有設定為「所有人」
+        return { success: false, error: "網路錯誤或 GAS 尚未正確部署 (請確認存取權限為「所有人」)" };
+      } finally {
         if (!silent) this.loading = false;
-        console.error(err);
-        return { success: false, error: "Network Error" };
       }
     },
 
-    // 背景靜默更新商品資料 (完全不會干擾畫面體驗)
+    // 背景靜默更新商品資料
     async refreshProductsSilent() {
       const res = await this.fetchApi('getStoreData', { password: this.adminPin }, true);
-      if (res.products) {
+      if (res && res.products) {
          this.products = res.products;
-         // 若商品彈窗正在開啟中，背景更新其最新的實時庫存
          if (this.modalItem) {
             const updatedItem = this.products.find(p => p.rowIndex === this.modalItem.rowIndex);
             if (updatedItem) {
                this.modalItem.stock = updatedItem.stock;
+               if (updatedItem.specsObj) this.modalItem.specsObj = updatedItem.specsObj;
             }
          }
       }
@@ -846,15 +854,21 @@ createApp({
 
     // --- Front Actions ---
     async fetchStoreData() {
-      const res = await this.fetchApi('getStoreData', { password: this.adminPin });
-      if (res.products) {
-         this.products = res.products; this.options = res.options; this.modes = res.modes;
-         this.payments = res.payments || [];
-         this.categoriesList = res.categories;
-         this.config = res.config;
-         if(res.config.rawConfig) this.adminConfig = res.config.rawConfig; 
-         if(this.modes.length > 0 && !this.orderForm.shippingMethod.name) this.orderForm.shippingMethod = this.modes[0];
-         if(this.enabledPayments.length > 0 && !this.orderForm.paymentMethod) this.orderForm.paymentMethod = this.enabledPayments[0];
+      try {
+        const res = await this.fetchApi('getStoreData', { password: this.adminPin });
+        if (res && res.products) {
+           this.products = res.products; 
+           this.options = res.options || []; 
+           this.modes = res.modes || [];
+           this.payments = res.payments || [];
+           this.categoriesList = res.categories || [];
+           this.config = res.config || {};
+           if(this.config.rawConfig) this.adminConfig = this.config.rawConfig; 
+           if(this.modes.length > 0 && !this.orderForm.shippingMethod.name) this.orderForm.shippingMethod = this.modes[0];
+           if(this.enabledPayments.length > 0 && !this.orderForm.paymentMethod) this.orderForm.paymentMethod = this.enabledPayments[0];
+        }
+      } catch (e) {
+        console.error("fetchStoreData exception:", e);
       }
     },
     openProductModal(item) {
@@ -878,16 +892,18 @@ createApp({
       this.refreshProductsSilent();
     },
     addToCart() {
+      if (this.config.systemStatus === 'Closed') {
+          alert('本商店目前維護中，暫停購物服務，敬請見諒！');
+          return;
+      }
       if (!this.member.name) { alert('請先登入會員才能購買'); this.showLoginModal = true; getModal('productModal').hide(); return; }
       
-      // 加入前再次比對當前畫面所計算的剩餘庫存
       if (this.currentStock < this.modalQty) { alert('很抱歉，您的購物車數量已達庫存上限'); return; }
       
       for (let g of this.modalOptions) { if (!this.selectedOpts[g.title]) { alert(`請選擇 ${g.title}`); return; } }
       let optStr = Object.values(this.selectedOpts).join(' / ');
       let selectKey = Object.values(this.selectedOpts).sort().join('-');
       
-      // 如果購物車已有相同規格，累加數量，否則新增
       let existingItem = this.cart.find(c => c.rowIndex === this.modalItem.rowIndex && c.selectKey === selectKey);
       if (existingItem) {
           existingItem.qty += this.modalQty;
@@ -895,7 +911,6 @@ createApp({
           this.cart.push({ ...this.modalItem, qty: this.modalQty, opts: optStr, selectKey: selectKey });
       }
 
-      // 重置數量選單為1，方便下次加入
       this.modalQty = 1; 
       getModal('productModal').hide(); 
       alert('已加入購物車');
@@ -913,7 +928,6 @@ createApp({
             baseStock = Number(p.stock || 0);
         }
         
-        // 計算購物車內這個商品的總數量
         let inCartQty = this.cart.filter(c => c.rowIndex === item.rowIndex && c.selectKey === item.selectKey).reduce((sum, c) => sum + c.qty, 0);
         
         if (inCartQty < baseStock) {
@@ -924,6 +938,10 @@ createApp({
     },
 
     async submitOrder() {
+      if (this.config.systemStatus === 'Closed') {
+          alert('本商店目前維護中，暫停接單！');
+          return;
+      }
       if (!this.member.name) { alert('請先登入會員'); this.showLoginModal = true; return; }
       
       if (this.currentPayment.needInput === 'Y' && !this.orderForm.paymentDetails) {
@@ -931,7 +949,7 @@ createApp({
          return;
       }
 
-      this.isSubmitting = true; // 防止重複點擊
+      this.isSubmitting = true;
 
       const payload = { 
          name: this.orderForm.name, phone: this.orderForm.phone, address: this.orderForm.address, 
@@ -946,28 +964,28 @@ createApp({
       const res = await this.fetchApi('submitOrder', { payload });
       this.isSubmitting = false;
 
-      if (res.success) { 
+      if (res && res.success) { 
          this.lastOrderId = res.orderId; 
          this.page = 'success'; 
          this.cart = []; 
          
-         // [防超賣優化]：成功下單後，立刻在背景靜默更新商品總表庫存
+         // 成功下單後，立刻在背景靜默更新商品總表庫存
          this.refreshProductsSilent();
       } else {
-         // [防超賣優化]：若是因為庫存不足被擋下來，提示後自動背景刷新前端庫存
-         alert(res.error);
+         alert(res.error || "訂單送出失敗，請稍後再試。");
+         // 若是因為庫存不足被擋下來，背景自動刷新前端庫存
          this.refreshProductsSilent();
       }
     },
-    async login() { const res = await this.fetchApi('login', this.loginData); if(res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res.error); },
-    async register() { const res = await this.fetchApi('register', this.regData); if(res.success) { alert('註冊成功'); this.showRegModal = false; this.showLoginModal = true; } else alert(res.error); },
+    async login() { const res = await this.fetchApi('login', this.loginData); if(res && res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res.error); },
+    async register() { const res = await this.fetchApi('register', this.regData); if(res && res.success) { alert('註冊成功'); this.showRegModal = false; this.showLoginModal = true; } else alert(res.error); },
     logout() { this.member = {}; this.page = 'home'; },
-    async checkOrders() { const res = await this.fetchApi('getMemberOrders', { phone: this.member.phone }); if(res.success) { this.historyOrders = res.orders; this.page = 'history'; } },
+    async checkOrders() { const res = await this.fetchApi('getMemberOrders', { phone: this.member.phone }); if(res && res.success) { this.historyOrders = res.orders; this.page = 'history'; } },
 
     // --- Admin Actions ---
     async adminLogin() {
        const res = await this.fetchApi('getStoreData', { password: this.adminPin });
-       if (res.isAdmin) {
+       if (res && res.isAdmin) {
           this.isAdmin = true; 
           this.showAdminLogin = false; 
           this.page = 'admin';
@@ -981,16 +999,16 @@ createApp({
     adminLogout() { this.isAdmin = false; this.adminPin = ''; this.page = 'home'; },
     async refreshAdminData() {
        const resOrders = await this.fetchApi('getAdminOrders', { password: this.adminPin });
-       if(resOrders.success) this.adminOrders = resOrders.orders;
+       if(resOrders && resOrders.success) this.adminOrders = resOrders.orders;
        
        if(this.adminTab === 'members') {
          const resMem = await this.fetchApi('getAdminMembers', { password: this.adminPin });
-         if(resMem.success) this.adminMembers = resMem.members;
+         if(resMem && resMem.success) this.adminMembers = resMem.members;
        }
     },
     async viewMemberOrders(member) {
        const res = await this.fetchApi('getMemberDetailAdmin', { password: this.adminPin, targetPhone: member.phone });
-       if(res.success) {
+       if(res && res.success) {
           this.adminMemberOrders = res.orders;
           getModal('adminMemberOrderModal').show();
        } else {
@@ -999,21 +1017,21 @@ createApp({
     },
     async doAdminAction(subAction, payload) {
        const res = await this.fetchApi('adminAction', { password: this.adminPin, subAction, payload });
-       if(res.success) { 
+       if(res && res.success) { 
           alert('操作成功'); 
           this.fetchStoreData();
           if(subAction === 'updateOrderDetails') this.refreshAdminData();
           return true;
        } else {
-          alert('失敗: ' + res.error);
+          alert('失敗: ' + (res ? res.error : 'Network Error'));
           return false;
        }
     },
     async sendTestEmail() {
       if(!this.adminConfig.AdminEmail) return alert("請先輸入 Email");
       const res = await this.fetchApi('testEmail', { password: this.adminPin, email: this.adminConfig.AdminEmail });
-      if(res.success) alert("測試信已發送，請檢查收件匣 (含垃圾郵件)");
-      else alert("發送失敗: " + res.error);
+      if(res && res.success) alert("測試信已發送，請檢查收件匣 (含垃圾郵件)");
+      else alert("發送失敗: " + (res ? res.error : 'Network Error'));
     },
     
     // Rich Text Editor
