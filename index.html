@@ -186,7 +186,13 @@
     <h2 class="font-serif mb-4">購物車</h2>
     <div v-if="cart.length === 0" class="text-center py-5 bg-light"><i class="bi bi-bag fs-1 text-muted"></i><p class="mt-3">購物車是空的</p><button class="btn btn-dark rounded-0 mt-2" @click="page='shop'">去逛逛</button></div>
     <div v-else>
-      <div class="card border-0 shadow-sm mb-4"><div class="card-body"><div v-for="(item, idx) in cart" :key="idx" class="d-flex align-items-center mb-3 pb-3 border-bottom"><img :src="item.image" style="width: 70px; height: 90px; object-fit: cover;" class="me-3" referrerpolicy="no-referrer"><div class="flex-grow-1"><div class="fw-bold">{{ item.name }}</div><div class="small text-muted">{{ item.opts }}</div><div class="text-danger">${{ item.price }}</div></div><div class="d-flex align-items-center"><button class="btn btn-sm btn-light" @click="item.qty > 1 ? item.qty-- : null">-</button><span class="mx-2">{{ item.qty }}</span><button class="btn btn-sm btn-light" @click="item.qty++">+</button></div><button class="btn btn-link text-muted ms-3" @click="cart.splice(idx, 1)"><i class="bi bi-x-lg"></i></button></div><div class="d-flex justify-content-between fw-bold fs-5"><span>小計</span><span>${{ cartSubtotal }}</span></div></div></div>
+      <div class="card border-0 shadow-sm mb-4"><div class="card-body"><div v-for="(item, idx) in cart" :key="idx" class="d-flex align-items-center mb-3 pb-3 border-bottom"><img :src="item.image" style="width: 70px; height: 90px; object-fit: cover;" class="me-3" referrerpolicy="no-referrer"><div class="flex-grow-1"><div class="fw-bold">{{ item.name }}</div><div class="small text-muted">{{ item.opts }}</div><div class="text-danger">${{ item.price }}</div></div>
+      <div class="d-flex align-items-center">
+        <button class="btn btn-sm btn-light" @click="item.qty > 1 ? item.qty-- : null">-</button>
+        <span class="mx-2">{{ item.qty }}</span>
+        <button class="btn btn-sm btn-light" @click="increaseCartQty(item)">+</button>
+      </div>
+      <button class="btn btn-link text-muted ms-3" @click="cart.splice(idx, 1)"><i class="bi bi-x-lg"></i></button></div><div class="d-flex justify-content-between fw-bold fs-5"><span>小計</span><span>${{ cartSubtotal }}</span></div></div></div>
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white font-serif fw-bold py-3">運送與結帳資訊</div>
         <div class="card-body">
@@ -216,7 +222,10 @@
 
             <div class="mb-3"><label class="form-label">備註</label><textarea class="form-control rounded-0" v-model="orderForm.note" rows="2"></textarea></div>
             <hr><div class="d-flex justify-content-between fs-4 fw-bold mb-4"><span>總金額</span><span class="text-danger">${{ cartSubtotal + (orderForm.shippingMethod.fee || 0) }}</span></div>
-            <button type="submit" class="btn btn-dark w-100 py-3 text-uppercase rounded-0 fw-bold">確認下單</button>
+            <button type="submit" class="btn btn-dark w-100 py-3 text-uppercase rounded-0 fw-bold" :disabled="isSubmitting">
+                <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+                確認下單
+            </button>
           </form>
         </div>
       </div>
@@ -619,7 +628,7 @@
       <div v-else class="text-muted small mb-3">此商品無規格選項</div>
       
       <div class="mb-3 small">
-         <span v-if="currentStock > 0" class="text-success"><i class="bi bi-check-circle"></i> 庫存充足 ({{currentStock}})</span>
+         <span v-if="currentStock > 0" class="text-success"><i class="bi bi-check-circle"></i> 庫存充足 (剩餘 {{currentStock}} 件)</span>
          <span v-else class="text-danger"><i class="bi bi-x-circle"></i> 目前缺貨</span>
       </div>
 
@@ -642,7 +651,7 @@ const getModal = (id) => { if(!bsModals[id]) bsModals[id] = new bootstrap.Modal(
 createApp({
   data() {
     return {
-      loading: false, page: 'home', config: {}, products: [], categoriesList: [], options: [], modes: [], payments: [],
+      loading: false, isSubmitting: false, page: 'home', config: {}, products: [], categoriesList: [], options: [], modes: [], payments: [],
       filterCategory: 'All', cart: [], modalItem: null, modalQty: 1, modalOptions: [], selectedOpts: {},
       orderForm: { name: '', phone: '', address: '', storeName: '', note: '', shippingMethod: {}, paymentMethod: '', paymentDetails: '' },
       lastOrderId: '', member: {}, showLoginModal: false, showRegModal: false,
@@ -685,17 +694,35 @@ createApp({
     enabledPayments() { return this.payments.filter(p => p.enabled === 'Y'); },
     currentPayment() { return this.orderForm.paymentMethod; },
     
+    // [重點] 動態扣除購物車內的數量，讓畫面顯示真正的「剩餘可買庫存」
     currentStock() {
        if(!this.modalItem) return 0;
+       
+       let baseStock = 0;
+       let keys = Object.values(this.selectedOpts).sort();
+       let selectKey = keys.join('-');
+
        if(this.modalItem.stock && typeof this.modalItem.stock === 'object') {
-          let keys = Object.values(this.selectedOpts).sort();
-          let key = keys.join('-');
-          if(keys.length > 0 && this.modalItem.stock[key] !== undefined) {
-             return Number(this.modalItem.stock[key]);
+          if(keys.length > 0 && this.modalItem.stock[selectKey] !== undefined) {
+             baseStock = Number(this.modalItem.stock[selectKey]);
+          } else if (keys.length > 0) {
+             baseStock = 0;
+          } else {
+             baseStock = 999;
           }
-          if(keys.length > 0) return 0;
+       } else {
+          baseStock = typeof this.modalItem.stock === 'number' ? this.modalItem.stock : 999;
        }
-       return typeof this.modalItem.stock === 'number' ? this.modalItem.stock : 999;
+
+       // 自動扣除購物車中已經存在的相同商品數量
+       let inCartQty = 0;
+       this.cart.forEach(c => {
+          if (c.rowIndex === this.modalItem.rowIndex && c.selectKey === selectKey) {
+             inCartQty += c.qty;
+          }
+       });
+
+       return Math.max(0, baseStock - inCartQty);
     },
 
     // Admin Computed
@@ -758,7 +785,7 @@ createApp({
     }
   },
   methods: {
-    // 核心 API 請求函式 (支援靜默背景請求)
+    // 核心 API 請求函式 (支援靜默背景請求 silent mode)
     async fetchApi(action, payload = {}, silent = false) {
       if(!GAS_API_URL || GAS_API_URL.includes("您的_GAS_API")) {
          if (!silent) alert("尚未設定 GAS API 網址");
@@ -781,16 +808,16 @@ createApp({
       }
     },
 
-    // 背景靜默更新商品資料 (包含庫存)
+    // 背景靜默更新商品資料 (完全不會干擾畫面體驗)
     async refreshProductsSilent() {
       const res = await this.fetchApi('getStoreData', { password: this.adminPin }, true);
       if (res.products) {
          this.products = res.products;
+         // 若商品彈窗正在開啟中，背景更新其最新的實時庫存
          if (this.modalItem) {
             const updatedItem = this.products.find(p => p.rowIndex === this.modalItem.rowIndex);
             if (updatedItem) {
                this.modalItem.stock = updatedItem.stock;
-               if (updatedItem.specsObj) this.modalItem.specsObj = updatedItem.specsObj;
             }
          }
       }
@@ -846,18 +873,56 @@ createApp({
 
       this.modalOptions.forEach(g => { if(g.choices.length > 0) this.selectedOpts[g.title] = g.choices[0]; });
       getModal('productModal').show();
+
+      // [防超賣優化]：點開商品時，在背景無縫更新一次該商品的真實庫存
+      this.refreshProductsSilent();
     },
     addToCart() {
       if (!this.member.name) { alert('請先登入會員才能購買'); this.showLoginModal = true; getModal('productModal').hide(); return; }
-      if (this.currentStock < this.modalQty) { alert('庫存不足'); return; }
+      
+      // 加入前再次比對當前畫面所計算的剩餘庫存
+      if (this.currentStock < this.modalQty) { alert('很抱歉，您的購物車數量已達庫存上限'); return; }
       
       for (let g of this.modalOptions) { if (!this.selectedOpts[g.title]) { alert(`請選擇 ${g.title}`); return; } }
       let optStr = Object.values(this.selectedOpts).join(' / ');
       let selectKey = Object.values(this.selectedOpts).sort().join('-');
       
-      this.cart.push({ ...this.modalItem, qty: this.modalQty, opts: optStr, selectKey: selectKey });
-      getModal('productModal').hide(); alert('已加入購物車');
+      // 如果購物車已有相同規格，累加數量，否則新增
+      let existingItem = this.cart.find(c => c.rowIndex === this.modalItem.rowIndex && c.selectKey === selectKey);
+      if (existingItem) {
+          existingItem.qty += this.modalQty;
+      } else {
+          this.cart.push({ ...this.modalItem, qty: this.modalQty, opts: optStr, selectKey: selectKey });
+      }
+
+      // 重置數量選單為1，方便下次加入
+      this.modalQty = 1; 
+      getModal('productModal').hide(); 
+      alert('已加入購物車');
     },
+
+    // 購物車內的 [+] 增加數量按鈕，同樣受即時庫存限制
+    increaseCartQty(item) {
+        const p = this.products.find(x => x.rowIndex === item.rowIndex);
+        if(!p) return;
+        
+        let baseStock = 999;
+        if (p.stock && typeof p.stock === 'object') {
+            baseStock = Number(p.stock[item.selectKey] || 0);
+        } else {
+            baseStock = Number(p.stock || 0);
+        }
+        
+        // 計算購物車內這個商品的總數量
+        let inCartQty = this.cart.filter(c => c.rowIndex === item.rowIndex && c.selectKey === item.selectKey).reduce((sum, c) => sum + c.qty, 0);
+        
+        if (inCartQty < baseStock) {
+            item.qty++;
+        } else {
+            alert('很抱歉，此商品已達目前庫存上限');
+        }
+    },
+
     async submitOrder() {
       if (!this.member.name) { alert('請先登入會員'); this.showLoginModal = true; return; }
       
@@ -865,6 +930,8 @@ createApp({
          alert('請輸入付款資訊 (如後五碼)');
          return;
       }
+
+      this.isSubmitting = true; // 防止重複點擊
 
       const payload = { 
          name: this.orderForm.name, phone: this.orderForm.phone, address: this.orderForm.address, 
@@ -877,15 +944,19 @@ createApp({
       };
       
       const res = await this.fetchApi('submitOrder', { payload });
+      this.isSubmitting = false;
+
       if (res.success) { 
          this.lastOrderId = res.orderId; 
          this.page = 'success'; 
          this.cart = []; 
          
-         // 成功送出後，在背景靜默更新商品庫存 (包含所有獨立庫存)
+         // [防超賣優化]：成功下單後，立刻在背景靜默更新商品總表庫存
          this.refreshProductsSilent();
       } else {
+         // [防超賣優化]：若是因為庫存不足被擋下來，提示後自動背景刷新前端庫存
          alert(res.error);
+         this.refreshProductsSilent();
       }
     },
     async login() { const res = await this.fetchApi('login', this.loginData); if(res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res.error); },
