@@ -87,7 +87,7 @@
 <div id="app">
   <div v-if="loading" class="loading-overlay">
       <div class="spinner-border text-dark" role="status"></div>
-      <div class="mt-3 small text-muted">連線中...</div>
+      <div class="mt-3 small text-muted">連線中，請稍候...</div>
   </div>
 
   <nav class="navbar navbar-expand-lg fixed-top" v-if="page !== 'admin'">
@@ -644,7 +644,7 @@
 <script>
 // ==========================================
 // 請將您的 Google Apps Script 部署網址貼在這裡
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3dgatcqmkJYSyDUymTxP0VGkM3iL0HlavPaJA7dRDBKDHTDCvmWVr7VAhjYfP12mBlg/exec"; 
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzzIS5oYM8DsKReEjbmGjheYJtpgdkrAWTpKNpyJtuO9HMM4kQNwUruP4I_nLyUQ9em5Q/exec"; 
 // ==========================================
 
 const { createApp } = Vue;
@@ -654,7 +654,7 @@ const getModal = (id) => { if(!bsModals[id]) bsModals[id] = new bootstrap.Modal(
 createApp({
   data() {
     return {
-      loading: false, isSubmitting: false, page: 'home', config: {}, products: [], categoriesList: [], options: [], modes: [], payments: [],
+      loading: false, isSubmitting: false, page: 'home', config: { systemStatus: 'Open' }, products: [], categoriesList: [], options: [], modes: [], payments: [],
       filterCategory: 'All', cart: [], modalItem: null, modalQty: 1, modalOptions: [], selectedOpts: {},
       orderForm: { name: '', phone: '', address: '', storeName: '', note: '', shippingMethod: {}, paymentMethod: '', paymentDetails: '' },
       lastOrderId: '', member: {}, showLoginModal: false, showRegModal: false,
@@ -788,7 +788,7 @@ createApp({
     }
   },
   methods: {
-    // 核心 API 請求函式 (加入 try-catch 與 finally 確保停止轉圈)
+    // 核心 API 請求函式 (加入嚴格的錯誤攔截與 finally)
     async fetchApi(action, payload = {}, silent = false) {
       if(!GAS_API_URL || GAS_API_URL.includes("您的_GAS_API")) {
          if (!silent) {
@@ -797,6 +797,7 @@ createApp({
          }
          return { success: false, error: "No API URL" };
       }
+      
       if (!silent) this.loading = true;
       try {
         const response = await fetch(GAS_API_URL, {
@@ -804,13 +805,17 @@ createApp({
           body: JSON.stringify({ action: action, data: payload }),
           headers: { "Content-Type": "text/plain" }
         });
-        if (!response.ok) throw new Error("HTTP Status " + response.status);
+        
+        if (!response.ok) throw new Error("伺服器回應錯誤 (" + response.status + ")");
+        
         const res = await response.json();
         return res;
       } catch (err) {
         console.error("API Error:", err);
-        // 如果是跨域錯誤，通常是因為 GAS 權限沒有設定為「所有人」
-        return { success: false, error: "網路錯誤或 GAS 尚未正確部署 (請確認存取權限為「所有人」)" };
+        if (!silent) {
+            alert("⚠️ 無法連線到後端！\n請確認您的 GAS 網址正確，且部署權限已設為「所有人」。\n詳細錯誤: " + err.message);
+        }
+        return { success: false, error: err.message };
       } finally {
         if (!silent) this.loading = false;
       }
@@ -862,10 +867,17 @@ createApp({
            this.modes = res.modes || [];
            this.payments = res.payments || [];
            this.categoriesList = res.categories || [];
-           this.config = res.config || {};
-           if(this.config.rawConfig) this.adminConfig = this.config.rawConfig; 
-           if(this.modes.length > 0 && !this.orderForm.shippingMethod.name) this.orderForm.shippingMethod = this.modes[0];
-           if(this.enabledPayments.length > 0 && !this.orderForm.paymentMethod) this.orderForm.paymentMethod = this.enabledPayments[0];
+           
+           if(res.config) {
+               this.config = res.config;
+               if(this.config.rawConfig) this.adminConfig = this.config.rawConfig; 
+           }
+           if(this.modes.length > 0 && (!this.orderForm.shippingMethod || !this.orderForm.shippingMethod.name)) {
+               this.orderForm.shippingMethod = this.modes[0];
+           }
+           if(this.enabledPayments.length > 0 && !this.orderForm.paymentMethod) {
+               this.orderForm.paymentMethod = this.enabledPayments[0];
+           }
         }
       } catch (e) {
         console.error("fetchStoreData exception:", e);
@@ -888,7 +900,7 @@ createApp({
       this.modalOptions.forEach(g => { if(g.choices.length > 0) this.selectedOpts[g.title] = g.choices[0]; });
       getModal('productModal').show();
 
-      // [防超賣優化]：點開商品時，在背景無縫更新一次該商品的真實庫存
+      // 點開商品時背景無縫更新一次該商品的真實庫存
       this.refreshProductsSilent();
     },
     addToCart() {
@@ -916,7 +928,7 @@ createApp({
       alert('已加入購物車');
     },
 
-    // 購物車內的 [+] 增加數量按鈕，同樣受即時庫存限制
+    // 購物車內的 [+] 增加數量按鈕受即時庫存限制
     increaseCartQty(item) {
         const p = this.products.find(x => x.rowIndex === item.rowIndex);
         if(!p) return;
@@ -972,13 +984,13 @@ createApp({
          // 成功下單後，立刻在背景靜默更新商品總表庫存
          this.refreshProductsSilent();
       } else {
-         alert(res.error || "訂單送出失敗，請稍後再試。");
-         // 若是因為庫存不足被擋下來，背景自動刷新前端庫存
+         alert(res ? res.error : "訂單送出失敗，請確認網路連線。");
+         // 庫存不足被擋下來，背景自動刷新前端庫存
          this.refreshProductsSilent();
       }
     },
-    async login() { const res = await this.fetchApi('login', this.loginData); if(res && res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res.error); },
-    async register() { const res = await this.fetchApi('register', this.regData); if(res && res.success) { alert('註冊成功'); this.showRegModal = false; this.showLoginModal = true; } else alert(res.error); },
+    async login() { const res = await this.fetchApi('login', this.loginData); if(res && res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res ? res.error : "連線失敗"); },
+    async register() { const res = await this.fetchApi('register', this.regData); if(res && res.success) { alert('註冊成功'); this.showRegModal = false; this.showLoginModal = true; } else alert(res ? res.error : "連線失敗"); },
     logout() { this.member = {}; this.page = 'home'; },
     async checkOrders() { const res = await this.fetchApi('getMemberOrders', { phone: this.member.phone }); if(res && res.success) { this.historyOrders = res.orders; this.page = 'history'; } },
 
@@ -993,7 +1005,7 @@ createApp({
           this.adminConfig = res.config.rawConfig;
           this.refreshAdminData();
        } else {
-          alert('密碼錯誤');
+          alert('密碼錯誤或連線失敗');
        }
     },
     adminLogout() { this.isAdmin = false; this.adminPin = ''; this.page = 'home'; },
