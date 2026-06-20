@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="referrer" content="no-referrer">
+  <!-- 移除全域的 no-referrer，避免 YouTube 播放器阻擋載入 -->
   <title>Ｍiglior Fashion | 美客麗爾 | 質感服飾、最新流行女裝、專屬穿搭、態度、生活</title>
   
   <meta name="description" content="歡迎來到 Ｍiglior Fashion！我們提供最新流行服飾、高質感女裝、百搭單品與專屬穿搭建議。">
@@ -27,7 +27,7 @@
     .hero-img-cover { width: 100%; height: 100%; object-fit: cover; object-position: center; }
     
     /* Youtube 影片滿版背景處理技巧 (避免黑邊) */
-    .yt-bg-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 1; }
+    .yt-bg-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 1; background: #000; }
     .yt-bg-iframe { 
         width: 100vw; height: 56.25vw; /* 16:9 比例 */
         min-height: calc(100vh - 70px); 
@@ -56,7 +56,6 @@
     .product-card { border: none; transition: transform 0.3s; cursor: pointer; height: 100%; }
     .product-card:hover { transform: translateY(-5px); }
     .product-img-wrapper { position: relative; overflow: hidden; padding-top: 133%; background: #f8f9fa; }
-    /* ✅ 修正 1: 將商品圖 object-fit 改為 contain 避免裁切 */
     .product-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background-color: transparent; }
 
     .tags-container { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; z-index: 5; }
@@ -79,7 +78,6 @@
     [contenteditable]:empty:before { content: attr(placeholder); color: #aaa; display: block; }
     
     .modal-carousel-img { width: 100%; height: 400px; object-fit: contain; background: #f8f9fa; }
-    /* ✅ 修正 2: 將活動預覽圖 object-fit 改為 contain 避免裁切 */
     .activity-img-card { width: 100%; height: 300px; object-fit: contain; background: #f8f9fa; cursor: zoom-in; transition: transform 0.2s; }
     .activity-img-card:hover { transform: scale(1.02); }
 
@@ -107,7 +105,7 @@
   <nav class="navbar navbar-expand-lg fixed-top" v-if="page !== 'admin'">
     <div class="container">
       <a class="brand-logo d-flex align-items-center" href="#" @click.prevent="goPage('home')">
-         <img v-if="config.logoImage" :src="config.logoImage" alt="Logo">
+         <img v-if="config.logoImage" :src="config.logoImage" alt="Logo" referrerpolicy="no-referrer">
          {{ config.storeName || 'FASHION' }}
       </a>
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
@@ -156,7 +154,8 @@
           <div class="carousel-item h-100" v-for="(img, idx) in config.welcomeImages" :key="idx" :class="{active: idx===0}" :data-bs-interval="isYoutube(img) ? 15000 : 5000">
             <template v-if="isYoutube(img)">
                 <div class="yt-bg-wrapper">
-                    <iframe class="yt-bg-iframe" :src="getYoutubeEmbedUrl(img, true, true)" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen playsinline></iframe>
+                    <!-- YouTube 播放器設定完整標籤 -->
+                    <iframe class="yt-bg-iframe" :src="getYoutubeEmbedUrl(img, true, true)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 </div>
             </template>
             <template v-else>
@@ -178,7 +177,6 @@
     <div class="container py-5" v-if="config.latestActivityImages && config.latestActivityImages.length > 0">
       <h3 class="text-center mb-4 font-serif">最新活動</h3>
       <div class="row g-3 justify-content-center">
-        <!-- ✅ 最新活動縮圖 -->
         <div class="col-12 col-md-6 col-lg-4 position-relative" v-for="(img, idx) in config.latestActivityImages" :key="idx">
           <template v-if="isYoutube(img)">
               <div class="position-relative activity-img-card" @click="showImagePreview(img)">
@@ -198,7 +196,6 @@
     <div class="container py-5">
       <h3 class="text-center mb-5 font-serif">熱銷單品</h3>
       <div class="row g-4">
-        <!-- ✅ 商品列表縮圖 -->
         <div class="col-6 col-md-3" v-for="item in featuredProducts" :key="item.rowIndex" @click="openProductModal(item)">
           <div class="product-card">
             <div class="product-img-wrapper">
@@ -262,7 +259,7 @@
       <div class="col-md-8 text-center">
         <h2 class="font-serif mb-4">關於品牌</h2>
         <template v-if="isYoutube(config.aboutImage)">
-            <iframe :src="getYoutubeEmbedUrl(config.aboutImage)" class="img-fluid mb-4 w-100 rounded shadow-sm" style="height: 50vh; min-height: 400px; background:#000;" frameborder="0" allow="fullscreen" allowfullscreen loading="lazy"></iframe>
+            <iframe :src="getYoutubeEmbedUrl(config.aboutImage)" class="img-fluid mb-4 w-100 rounded shadow-sm" style="height: 50vh; min-height: 400px; background:#000;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
         </template>
         <img v-else :src="config.aboutImage || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1000&q=80'" class="img-fluid mb-4 w-100 rounded shadow-sm" style="max-height: 600px; object-fit: contain; background: #f8f9fa;" referrerpolicy="no-referrer">
         <div class="lead text-muted mt-4 text-start" style="line-height: 1.8;" v-html="config.aboutUs || 'Loading...'"></div>
@@ -287,7 +284,7 @@
           <div class="carousel-inner">
             <div class="carousel-item" v-for="(img, idx) in config.newsImages" :key="idx" :class="{active: idx===0}">
               <template v-if="isYoutube(img)">
-                 <iframe :src="getYoutubeEmbedUrl(img)" class="d-block w-100 rounded" style="height:400px; background:#000;" frameborder="0" allow="fullscreen" allowfullscreen loading="lazy"></iframe>
+                 <iframe :src="getYoutubeEmbedUrl(img)" class="d-block w-100 rounded" style="height:400px; background:#000;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
               </template>
               <img v-else :src="img" class="d-block w-100 rounded" style="height:400px; object-fit:contain;" referrerpolicy="no-referrer">
             </div>
@@ -466,7 +463,7 @@
               <div class="mb-3"><label class="form-label">Instagram 連結</label><input class="form-control" v-model="adminConfig.SocialIg"></div>
               <div class="mb-3"><label class="form-label">Line 連結</label><input class="form-control" v-model="adminConfig.SocialLine"></div>
               <div class="mb-3"><label class="form-label">聯絡我們連結 (Mailto/URL)</label><input class="form-control" v-model="adminConfig.ContactLink" placeholder="mailto:xx@xx.com"></div>
-              <div class="mb-3"><label class="form-label">商店 Logo URL</label><input class="form-control" v-model="adminConfig.LogoImage"></div>
+              <div class="mb-3"><label class="form-label">商店 Logo URL</label><input class="form-control" v-model="adminConfig.LogoImage" referrerpolicy="no-referrer"></div>
               
               <div class="mb-3"><label class="form-label">跑馬燈文字</label><input class="form-control" v-model="adminConfig.MarqueeText"></div>
               <div class="row mb-3"><div class="col-4"><label class="form-label">跑馬燈速度(秒)</label><input type="number" class="form-control" v-model="adminConfig.MarqueeSpeed"></div><div class="col-4"><label class="form-label">跑馬燈字色</label><input type="color" class="form-control form-control-color w-100" v-model="adminConfig.MarqueeColor"></div><div class="col-4"><label class="form-label">跑馬燈底色</label><input type="color" class="form-control form-control-color w-100" v-model="adminConfig.MarqueeBgColor"></div></div>
@@ -585,7 +582,7 @@
         <div class="modal-body text-center p-0 position-relative">
           <template v-if="isYoutube(previewImage)">
              <!-- 加上 allowfullscreen 與背景色 -->
-             <iframe :src="getYoutubeEmbedUrl(previewImage, true)" class="img-fluid rounded shadow-lg" style="width: 85vw; height: 60vh; max-width: 1000px; background:#000;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+             <iframe :src="getYoutubeEmbedUrl(previewImage, true)" class="img-fluid rounded shadow-lg" style="width: 85vw; height: 60vh; max-width: 1000px; background:#000;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
           </template>
           <img v-else :src="previewImage" :key="previewImage" class="img-fluid rounded shadow-lg" style="max-height:85vh; object-fit: contain;" referrerpolicy="no-referrer">
           <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" style="z-index: 1050;" data-bs-dismiss="modal"></button>
@@ -599,7 +596,7 @@
     <div id="prodCarousel" class="carousel slide" data-bs-ride="carousel" v-if="modalItem.images && modalItem.images.length > 1">
        <div class="carousel-inner h-100">
          <div class="carousel-item h-100" v-for="(img, i) in modalItem.images" :key="i" :class="{active: i===0}">
-            <template v-if="isYoutube(img)"><iframe :src="getYoutubeEmbedUrl(img)" class="modal-carousel-img w-100 h-100" frameborder="0" allow="fullscreen" allowfullscreen loading="lazy"></iframe></template>
+            <template v-if="isYoutube(img)"><iframe :src="getYoutubeEmbedUrl(img)" class="modal-carousel-img w-100 h-100" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></template>
             <img v-else :src="img" class="modal-carousel-img w-100 h-100" style="object-fit: contain;" referrerpolicy="no-referrer">
          </div>
        </div>
@@ -607,7 +604,7 @@
        <button class="carousel-control-next" type="button" data-bs-target="#prodCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
     </div>
     <template v-else>
-        <iframe v-if="isYoutube(modalItem.image)" :src="getYoutubeEmbedUrl(modalItem.image)" class="modal-carousel-img w-100" frameborder="0" allow="fullscreen" allowfullscreen></iframe>
+        <iframe v-if="isYoutube(modalItem.image)" :src="getYoutubeEmbedUrl(modalItem.image)" class="modal-carousel-img w-100" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
         <img v-else :src="modalItem.image" class="modal-carousel-img w-100" style="object-fit: contain;" referrerpolicy="no-referrer">
     </template>
   </div>
