@@ -51,14 +51,13 @@
     .social-btn { width: 45px; height: 45px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s; color: #333; font-size: 1.2rem; text-decoration: none; }
     .social-btn:hover { transform: translateY(-3px); color: var(--accent); }
     
-    /* 確保所有 iframe 預設佔滿空間 */
     .media-cover { width: 100%; height: 100%; object-fit: cover; }
 
     .product-card { border: none; transition: transform 0.3s; cursor: pointer; height: 100%; }
     .product-card:hover { transform: translateY(-5px); }
     .product-img-wrapper { position: relative; overflow: hidden; padding-top: 133%; background: #f8f9fa; }
     .product-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; background-color: #f8f9fa; }
-    .iframe-no-click { pointer-events: none; } /* 讓商品卡片上的影片可被點擊觸發外層事件 */
+    .iframe-no-click { pointer-events: none; }
 
     .tags-container { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; z-index: 5; }
     .badge-tag { padding: 5px 10px; font-size: 0.8rem; text-transform: uppercase; color: #fff; background: #000; border-radius: 2px; }
@@ -84,7 +83,6 @@
     .activity-img-card:hover { transform: scale(1.02); }
 
     @media (max-width: 768px) { 
-      /* 手機版無留白設定 (svh為自動扣除手機瀏覽器網址列的高級寫法) */
       .hero-section { height: calc(100svh - 70px); } 
       .yt-bg-iframe { min-height: calc(100svh - 70px); min-width: calc((100svh - 70px) * 1.7777); }
       .hero-title { font-size: 2.5rem; } 
@@ -151,19 +149,15 @@
   <div v-if="page === 'home'">
     <div v-if="config.marqueeText" class="marquee-container" :style="{background: config.marqueeBgColor || '#000', color: config.marqueeColor || '#fff'}"><div class="marquee-content" :style="{animationDuration: (config.marqueeSpeed || 15) + 's'}">{{ config.marqueeText }}</div></div>
     
-    <!-- 首頁歡迎畫面 (Hero Section) 滿版無留白 -->
     <div class="hero-section">
       <div id="heroCarousel" ref="heroCarousel" class="carousel slide carousel-fade h-100" data-bs-ride="carousel" v-if="config.welcomeImages && config.welcomeImages.length > 0">
         <div class="carousel-inner h-100">
-          <!-- 若是影片，播放時間給予15秒；圖片則是5秒 -->
           <div class="carousel-item h-100" v-for="(img, idx) in config.welcomeImages" :key="idx" :class="{active: idx===0}" :data-bs-interval="isYoutube(img) ? 15000 : 5000">
-            <!-- Youtube 影片滿版渲染 -->
             <template v-if="isYoutube(img)">
                 <div class="yt-bg-wrapper">
                     <iframe class="yt-bg-iframe" :src="getYoutubeEmbedUrl(img, true, true)" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" playsinline></iframe>
                 </div>
             </template>
-            <!-- 圖片滿版渲染 -->
             <template v-else>
                 <img :src="img" alt="Hero Image" referrerpolicy="no-referrer" class="hero-img-cover">
             </template>
@@ -171,7 +165,6 @@
         </div>
       </div>
       <div v-else class="h-100 w-100 bg-secondary d-flex align-items-center justify-content-center text-white">尚未設定歡迎圖片</div>
-      <!-- 文字疊加層 -->
       <div class="hero-overlay">
         <div class="hero-content">
           <h1 class="hero-title">{{ config.storeName }}</h1>
@@ -185,7 +178,6 @@
       <h3 class="text-center mb-4 font-serif">最新活動</h3>
       <div class="row g-3 justify-content-center">
         <div class="col-12 col-md-6 col-lg-4" v-for="(img, idx) in config.latestActivityImages" :key="idx">
-          <!-- 支援影片與圖片 -->
           <template v-if="isYoutube(img)">
               <iframe :src="getYoutubeEmbedUrl(img)" class="rounded shadow-sm activity-img-card" frameborder="0" allow="fullscreen" loading="lazy"></iframe>
           </template>
@@ -232,7 +224,6 @@
       <div class="col-6 col-md-4 col-lg-3" v-for="item in filteredProducts" :key="item.rowIndex">
         <div class="product-card" @click="openProductModal(item)">
           <div class="product-img-wrapper">
-            <!-- 支援影片縮圖 -->
             <template v-if="isYoutube(item.image)">
                 <iframe :src="getYoutubeEmbedUrl(item.image)" class="product-img iframe-no-click" frameborder="0" loading="lazy"></iframe>
             </template>
@@ -256,12 +247,10 @@
     <div class="row justify-content-center">
       <div class="col-md-8 text-center">
         <h2 class="font-serif mb-4">關於品牌</h2>
-        <!-- 關於我們圖片/影片 -->
         <template v-if="isYoutube(config.aboutImage)">
             <iframe :src="getYoutubeEmbedUrl(config.aboutImage)" class="img-fluid mb-4 w-100 rounded shadow-sm" style="height: 50vh; min-height: 400px;" frameborder="0" allow="fullscreen" loading="lazy"></iframe>
         </template>
         <img v-else :src="config.aboutImage || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1000&q=80'" class="img-fluid mb-4 w-100 rounded shadow-sm" style="max-height: 600px; object-fit: contain; background: #f8f9fa;" referrerpolicy="no-referrer">
-        
         <div class="lead text-muted mt-4 text-start" style="line-height: 1.8;" v-html="config.aboutUs || 'Loading...'"></div>
       </div>
     </div>
@@ -283,7 +272,6 @@
         <div id="newsCarousel" class="carousel slide mb-4" data-bs-ride="carousel" v-if="config.newsImages && config.newsImages.length > 0">
           <div class="carousel-inner">
             <div class="carousel-item" v-for="(img, idx) in config.newsImages" :key="idx" :class="{active: idx===0}">
-              <!-- 最新消息影片 -->
               <template v-if="isYoutube(img)">
                  <iframe :src="getYoutubeEmbedUrl(img)" class="d-block w-100 rounded" style="height:400px;" frameborder="0" allow="fullscreen" loading="lazy"></iframe>
               </template>
@@ -305,7 +293,6 @@
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
           <div v-for="(item, idx) in cart" :key="idx" class="d-flex align-items-center mb-3 pb-3 border-bottom">
-            <!-- 購物車使用 YouTube 靜態預覽圖避免卡頓 -->
             <img :src="isYoutube(item.image) ? getYoutubeThumbnail(item.image) : item.image" style="width: 70px; height: 90px; object-fit: cover;" class="me-3 bg-light" referrerpolicy="no-referrer">
             <div class="flex-grow-1">
               <div class="fw-bold">{{ item.name }}</div><div class="small text-muted">{{ item.opts }}</div><div class="text-danger">${{ item.price }}</div>
@@ -320,7 +307,6 @@
           <div class="d-flex justify-content-between fw-bold fs-5"><span>小計</span><span>${{ cartSubtotal }}</span></div>
         </div>
       </div>
-      <!-- (其餘結帳表單未改動，保持原始邏輯) -->
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white font-serif fw-bold py-3">運送與結帳資訊</div>
         <div class="card-body">
@@ -363,7 +349,7 @@
   <div v-if="page === 'success'" class="container py-5 text-center"><div class="my-5"><i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i><h2 class="mt-3 font-serif">感謝您的購買！</h2><p class="text-muted">訂單編號：<span class="fw-bold text-dark">{{ lastOrderId }}</span></p><p>我們會盡快為您安排出貨。</p></div><button class="btn btn-outline-dark rounded-0 px-5" @click="page='home'; cart=[]">回到首頁</button></div>
   <div v-if="page === 'history'" class="container py-5"><h3 class="font-serif mb-4">我的訂單紀錄</h3><div v-if="historyOrders.length===0" class="text-muted">尚無訂單</div><div class="card mb-3 border-0 shadow-sm" v-for="order in historyOrders" :key="order.orderId"><div class="card-header bg-white d-flex justify-content-between"><span class="fw-bold">{{ order.orderId }}</span><span class="text-muted small">{{ order.date }}</span></div><div class="card-body"><div style="white-space: pre-line;" class="small mb-2">{{ order.content }}</div><div class="d-flex justify-content-between align-items-end border-top pt-2"><div><span class="badge bg-secondary">{{ order.status }}</span> <span v-if="order.tracking" class="badge bg-info text-dark ms-1">追蹤: {{order.tracking}}</span></div><span class="fw-bold fs-5">${{ order.total }}</span></div></div></div><button class="btn btn-link text-muted mt-3" @click="page='home'">返回</button></div>
 
-  <!-- 後台管理區 (省略部分重複代碼，保留重點並修正預覽圖) -->
+  <!-- 後台管理區 完整展開 -->
   <div v-if="page === 'admin'" class="d-flex flex-column flex-md-row" style="min-height: 100vh;">
     <div class="admin-sidebar col-md-2">
       <div class="p-3 text-center mb-4 border-bottom border-secondary">
@@ -381,39 +367,125 @@
     </div>
     
     <div class="admin-content col-md-10">
+      
       <div v-if="adminTab === 'products'">
         <div class="d-flex justify-content-between align-items-center mb-4"><h3>商品列表</h3><button class="btn btn-primary" @click="editProduct({})">＋ 新增商品</button></div>
         <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>圖片</th><th>名稱</th><th>庫存</th><th>價格</th><th>狀態</th><th>操作</th></tr></thead><tbody><tr v-for="p in products" :key="p.rowIndex">
-          <!-- 支援影片縮圖 -->
           <td><img :src="isYoutube(p.image) ? getYoutubeThumbnail(p.image) : p.image" style="width:40px;height:40px;object-fit:cover" class="rounded bg-light" referrerpolicy="no-referrer"></td>
           <td>{{ p.name }}<br><small class="text-muted">{{p.category}}</small></td><td><span class="badge" :class="displayStock(p.stock)==='0'?'bg-danger':'bg-secondary'">{{ displayStock(p.stock) }}</span></td><td>${{ p.price }}</td><td><span class="badge" :class="p.status==='Y'?'bg-success':'bg-secondary'">{{ p.status }}</span></td><td><button class="btn btn-sm btn-outline-primary me-2" @click="editProduct(p)">編輯</button><button class="btn btn-sm btn-outline-danger" @click="deleteProduct(p)">刪除</button></td></tr></tbody></table></div>
       </div>
-      <!-- 其他後台頁籤與原本完全相同... 為避免檔案超大省略未改動的部分 -->
-      <div v-if="adminTab === 'categories'"><div class="d-flex justify-content-between align-items-center mb-4"><h3>分類管理</h3><button class="btn btn-primary" @click="editCategory({})">＋ 新增分類</button></div><div class="bg-white rounded shadow-sm overflow-hidden"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>分類名稱</th><th>操作</th></tr></thead><tbody><tr v-for="c in categoriesList" :key="c.rowIndex"><td>{{ c.name }}</td><td><button class="btn btn-sm btn-link" @click="editCategory(c)">編輯</button><button class="btn btn-sm btn-outline-danger" @click="deleteCategory(c)">刪除</button></td></tr></tbody></table></div></div>
       
-      <!-- 請注意：網站設定區塊已經為所有圖檔支援填入 Youtube 網址，此處無須特別變更UI -->
+      <div v-if="adminTab === 'categories'">
+        <div class="d-flex justify-content-between align-items-center mb-4"><h3>分類管理</h3><button class="btn btn-primary" @click="editCategory({})">＋ 新增分類</button></div>
+        <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>分類名稱</th><th>操作</th></tr></thead><tbody><tr v-for="c in categoriesList" :key="c.rowIndex"><td>{{ c.name }}</td><td><button class="btn btn-sm btn-link" @click="editCategory(c)">編輯</button><button class="btn btn-sm btn-outline-danger" @click="deleteCategory(c)">刪除</button></td></tr></tbody></table></div>
+      </div>
+
+      <div v-if="adminTab === 'orders'">
+         <div class="d-flex justify-content-between align-items-center mb-4">
+           <h3>訂單列表</h3>
+           <div class="d-flex gap-2">
+             <select class="form-select form-select-sm w-auto" v-model="adminOrderFilter">
+                <option value="All">全部狀態</option><option value="處理中">處理中</option><option value="已確認">已確認</option><option value="已出貨">已出貨</option>
+             </select>
+             <input type="text" class="form-control form-control-sm" placeholder="🔍 搜尋單號/客戶/電話" v-model="adminOrderSearch">
+             <button class="btn btn-sm btn-secondary" @click="refreshAdminData">重新整理</button>
+           </div>
+         </div>
+         <div v-if="filteredAdminOrders.length===0" class="text-muted text-center py-5">無符合訂單</div>
+         <div class="card mb-3 shadow-sm border-0" v-for="o in filteredAdminOrders" :key="o.orderId">
+           <div class="card-header bg-white d-flex justify-content-between align-items-center">
+             <div><strong>{{ o.orderId }}</strong> <span class="text-muted small ms-2">{{ o.date }}</span> <span v-if="o.tracking" class="badge bg-info text-dark">單號: {{o.tracking}}</span></div>
+             <div class="d-flex gap-2">
+               <span class="badge bg-secondary align-self-center">{{ o.status }}</span>
+               <button class="btn btn-sm btn-outline-primary" @click="editOrder(o)">編輯 / 配貨</button>
+             </div>
+           </div>
+           <div class="card-body">
+             <div class="row">
+               <div class="col-md-4 mb-2"><strong>客戶:</strong> {{ o.customer }}<br><small>{{ o.contact }}</small></div>
+               <div class="col-md-5 mb-2 bg-light p-2 rounded"><small style="white-space:pre-wrap">{{ o.content }}</small>
+               <div v-if="o.note" class="mt-1 text-danger small"><strong>備註:</strong> {{o.note}}</div></div>
+               <div class="col-md-3 text-end"><h4 class="text-danger m-0">${{ o.total }}</h4><small class="text-muted">{{ o.method }}</small></div>
+             </div>
+           </div>
+         </div>
+      </div>
+
+      <div v-if="adminTab === 'members'">
+         <div class="d-flex justify-content-between align-items-center mb-4"><h3>會員管理</h3><div class="d-flex gap-2"><input type="text" class="form-control form-control-sm" placeholder="🔍 搜尋姓名或電話" v-model="memberSearch"><button class="btn btn-sm btn-secondary text-nowrap" @click="refreshAdminData">重新整理</button></div></div>
+         <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table table-hover mb-0 align-middle"><thead class="table-light"><tr><th>姓名</th><th>電話</th><th>註冊日期</th><th class="text-end">累計消費</th></tr></thead><tbody><tr v-for="m in filteredMembers" :key="m.phone" @click="viewMemberOrders(m)" style="cursor:pointer"><td>{{ m.name }}</td><td>{{ m.phone }}</td><td>{{ m.regDate }}</td><td class="text-end fw-bold text-danger">${{ m.spending }}</td></tr></tbody></table><div v-if="filteredMembers.length===0" class="p-4 text-center text-muted">無符合資料</div></div>
+      </div>
+
+      <div v-if="adminTab === 'stats'">
+         <h3 class="mb-4">銷售統計</h3>
+         <div class="row g-3 mb-4 align-items-end"><div class="col-md-4"><label class="small text-muted">開始日期</label><input type="date" class="form-control" v-model="statsDateStart"></div><div class="col-md-4"><label class="small text-muted">結束日期</label><input type="date" class="form-control" v-model="statsDateEnd"></div><div class="col-md-4"><div class="small text-muted">&nbsp;</div><button class="btn btn-dark w-100" @click="refreshAdminData">查詢區間</button></div></div>
+         <div class="row g-4 mb-4"><div class="col-md-6"><div class="bg-white p-4 rounded shadow-sm text-center border-bottom border-4 border-danger"><h6 class="text-muted">區間總營收</h6><h2 class="text-danger fw-bold m-0">${{ statsSummary.totalRevenue }}</h2></div></div><div class="col-md-6"><div class="bg-white p-4 rounded shadow-sm text-center border-bottom border-4 border-dark"><h6 class="text-muted">訂單數量</h6><h2 class="fw-bold m-0">{{ statsSummary.totalOrders }}</h2></div></div>
+         <div class="col-md-6"><div class="bg-white p-4 rounded shadow-sm text-center border-bottom border-4 border-info"><h6 class="text-muted">來客數 (Transactions)</h6><h2 class="fw-bold m-0 text-info">{{ statsSummary.totalOrders }}</h2></div></div>
+         <div class="col-md-6"><div class="bg-white p-4 rounded shadow-sm text-center border-bottom border-4 border-success"><h6 class="text-muted">客單價 (AOV)</h6><h2 class="fw-bold m-0 text-success">${{ statsSummary.aov }}</h2></div></div>
+         <div class="col-md-6"><div class="bg-white p-4 rounded shadow-sm text-center border-bottom border-4 border-warning"><h6 class="text-muted">平均商品單價 (ASP)</h6><h2 class="fw-bold m-0 text-warning">${{ statsSummary.asp }}</h2></div></div></div>
+         <div class="row g-4 mt-2">
+           <div class="col-md-6"><div class="bg-white rounded shadow-sm overflow-hidden p-4 h-100"><h5 class="mb-3">🔥 熱銷商品 (Top 10)</h5><table class="table table-sm"><thead><tr><th>排名</th><th>商品名稱</th><th class="text-end">銷量</th></tr></thead><tbody><tr v-for="(p, idx) in statsSummary.topProducts" :key="p.name"><td>{{ idx+1 }}</td><td>{{ p.name }}</td><td class="text-end fw-bold">{{ p.qty }}</td></tr></tbody></table></div></div>
+           <div class="col-md-6"><div class="bg-white rounded shadow-sm overflow-hidden p-4 h-100"><h5 class="mb-3">🏆 會員消費排行 (Top 10)</h5><table class="table table-sm"><thead><tr><th>排名</th><th>會員姓名</th><th class="text-end">金額</th></tr></thead><tbody><tr v-for="(m, idx) in statsSummary.topMembers" :key="m.phone"><td>{{ idx+1 }}</td><td>{{ m.name }}</td><td class="text-end fw-bold text-danger">${{ m.spending }}</td></tr></tbody></table></div></div>
+         </div>
+      </div>
+
+      <div v-if="adminTab === 'options'">
+         <h3 class="mb-4">規格與運送設定</h3>
+         <div class="mb-4"><div class="d-flex justify-content-between align-items-center mb-2"><h5>規格選項 (Variants)</h5><button class="btn btn-sm btn-primary" @click="editOption({})">新增規格</button></div><div class="bg-white rounded shadow-sm"><table class="table mb-0"><thead><tr><th>標題 (如:尺寸)</th><th>內容 (逗號分隔)</th><th>管理分類 (選填)</th><th>操作</th></tr></thead><tbody><tr v-for="o in options" :key="o.rowIndex"><td>{{ o.title }}</td><td>{{ o.choices.join(',') }}</td><td><small class="text-muted">{{ o.category }}</small></td><td><button class="btn btn-sm btn-link" @click="editOption(o)">編輯</button><button class="btn btn-sm btn-link text-danger" @click="deleteOption(o)">刪除</button></td></tr></tbody></table></div></div>
+         <div class="mb-4"><div class="d-flex justify-content-between align-items-center mb-2"><h5>運送方式 (Shipping)</h5><button class="btn btn-sm btn-primary" @click="editMode({})">新增方式</button></div><div class="bg-white rounded shadow-sm"><table class="table mb-0"><thead><tr><th>名稱</th><th>類型</th><th>運費</th><th>操作</th></tr></thead><tbody><tr v-for="m in modes" :key="m.rowIndex"><td>{{ m.name }}</td><td>{{ m.inputType }}</td><td>${{ m.fee }}</td><td><button class="btn btn-sm btn-link" @click="editMode(m)">編輯</button><button class="btn btn-sm btn-link text-danger" @click="deleteMode(m)">刪除</button></td></tr></tbody></table></div></div>
+      </div>
+
+      <div v-if="adminTab === 'payments'">
+         <div class="d-flex justify-content-between align-items-center mb-4"><h3>付款方式設定</h3><button class="btn btn-primary" @click="editPayment({})">＋ 新增方式</button></div>
+         <div class="bg-white rounded shadow-sm overflow-hidden"><table class="table mb-0"><thead><tr><th>名稱</th><th>類型</th><th>需填回報</th><th>狀態</th><th>操作</th></tr></thead><tbody><tr v-for="p in payments" :key="p.rowIndex"><td>{{ p.name }}</td><td><span class="badge bg-light text-dark border">{{ p.type }}</span></td><td>{{ p.needInput==='Y'?'是':'否' }}</td><td><span class="badge" :class="p.enabled==='Y'?'bg-success':'bg-secondary'">{{ p.enabled==='Y'?'啟用':'停用' }}</span></td><td><button class="btn btn-sm btn-link" @click="editPayment(p)">編輯</button><button class="btn btn-sm btn-link text-danger" @click="deletePayment(p)">刪除</button></td></tr></tbody></table></div>
+      </div>
+      
       <div v-if="adminTab === 'settings'">
           <h3 class="mb-4">網站設定</h3>
           <div class="bg-white p-4 rounded shadow-sm" style="max-width: 600px">
               <div class="alert alert-info py-2 small">💡 提示：下方所有填寫「圖片 URL」的地方，現在皆支援直接貼上 <b>Youtube 影片網址</b> (例如 https://youtu.be/xxx)。首頁歡迎圖會自動作為滿版動態背景！</div>
               <div class="mb-3"><label class="form-label">商店名稱</label><input class="form-control" v-model="adminConfig.StoreName"></div>
-              <!-- (略去其他未改動的設定欄位，包含 WelcomeImage, NewsImages 等...) -->
+              <div class="mb-3"><label class="form-label">網站狀態</label><select class="form-select" v-model="adminConfig.SystemStatus"><option value="Open">營業中</option><option value="Closed">維護中 (不接單)</option></select></div>
+              <div class="mb-3"><label class="form-label">訂單通知 Email</label><div class="input-group"><input class="form-control" v-model="adminConfig.AdminEmail" placeholder="example@gmail.com"><button class="btn btn-outline-secondary" @click="sendTestEmail">發送測試信</button></div></div>
+              
+              <div class="mb-3"><label class="form-label">Facebook 連結</label><input class="form-control" v-model="adminConfig.SocialFb"></div>
+              <div class="mb-3"><label class="form-label">Instagram 連結</label><input class="form-control" v-model="adminConfig.SocialIg"></div>
+              <div class="mb-3"><label class="form-label">Line 連結</label><input class="form-control" v-model="adminConfig.SocialLine"></div>
+              <div class="mb-3"><label class="form-label">聯絡我們連結 (Mailto/URL)</label><input class="form-control" v-model="adminConfig.ContactLink" placeholder="mailto:xx@xx.com"></div>
+              <div class="mb-3"><label class="form-label">商店 Logo URL</label><input class="form-control" v-model="adminConfig.LogoImage"></div>
+              
+              <div class="mb-3"><label class="form-label">跑馬燈文字</label><input class="form-control" v-model="adminConfig.MarqueeText"></div>
+              <div class="row mb-3"><div class="col-4"><label class="form-label">跑馬燈速度(秒)</label><input type="number" class="form-control" v-model="adminConfig.MarqueeSpeed"></div><div class="col-4"><label class="form-label">跑馬燈字色</label><input type="color" class="form-control form-control-color w-100" v-model="adminConfig.MarqueeColor"></div><div class="col-4"><label class="form-label">跑馬燈底色</label><input type="color" class="form-control form-control-color w-100" v-model="adminConfig.MarqueeBgColor"></div></div>
+              
+              <div class="mb-3"><label class="form-label">歡迎標語 (Hero Title)</label><input class="form-control" v-model="adminConfig.WelcomeMessage"></div>
               <div class="mb-3">
                 <label class="form-label">首頁輪播圖/影片 URLs (支援 Youtube)</label>
-                <div class="mb-2" v-for="(url, idx) in welcomeImgInputs" :key="idx">
-                  <div class="input-group">
-                    <input type="text" class="form-control" v-model="welcomeImgInputs[idx]" placeholder="Google Drive 或 Youtube 連結">
-                    <button class="btn btn-outline-danger" @click="removeWelcomeImgInput(idx)"><i class="bi bi-trash"></i></button>
-                  </div>
-                </div>
+                <div class="mb-2" v-for="(url, idx) in welcomeImgInputs" :key="idx"><div class="input-group"><input type="text" class="form-control" v-model="welcomeImgInputs[idx]" placeholder="Google Drive 或 Youtube 連結"><button class="btn btn-outline-danger" @click="removeWelcomeImgInput(idx)"><i class="bi bi-trash"></i></button></div></div>
                 <button class="btn btn-sm btn-outline-secondary" @click="addWelcomeImgInput"><i class="bi bi-plus"></i> 新增圖片/影片</button>
               </div>
+
+              <div class="mb-3">
+                <label class="form-label">最新活動 URLs (每行一張)</label>
+                <div class="mb-2" v-for="(url, idx) in activityImgInputs" :key="idx"><div class="input-group"><input type="text" class="form-control" v-model="activityImgInputs[idx]" placeholder="圖片連結"><button class="btn btn-outline-danger" @click="removeActivityImgInput(idx)"><i class="bi bi-trash"></i></button></div></div>
+                <button class="btn btn-sm btn-outline-secondary" @click="addActivityImgInput"><i class="bi bi-plus"></i> 新增活動圖片</button>
+              </div>
+              
               <div class="mb-3"><label class="form-label">關於品牌圖片/影片 URL</label><input class="form-control" v-model="adminConfig.AboutImage" placeholder="Google Drive 或 Youtube 連結"></div>
+              <div class="mb-3"><label class="form-label d-flex justify-content-between"><span>關於我們 (About Text)</span><span class="text-muted small">圖文編輯</span></label><div class="border rounded p-2 mb-2 bg-light"><div class="editor-toolbar btn-group mb-2"><button class="btn btn-outline-secondary btn-sm" @click="execCmd('bold')"><b>B</b></button><input type="color" class="btn btn-outline-secondary btn-sm p-1" style="width:40px" @change="execCmd('foreColor', $event.target.value)"><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyLeft')"><i class="bi bi-text-left"></i></button><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyCenter')"><i class="bi bi-text-center"></i></button><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyRight')"><i class="bi bi-text-right"></i></button></div><div id="aboutEditor" class="form-control bg-white rich-editor" contenteditable="true" @input="updateAboutUsContent"></div></div></div>
+              
+              <div class="mb-3">
+                <label class="form-label">最新消息圖片 (每行一張)</label>
+                <div class="mb-2" v-for="(url, idx) in newsImgInputs" :key="idx"><div class="input-group"><input type="text" class="form-control" v-model="newsImgInputs[idx]" placeholder="圖片連結"><button class="btn btn-outline-danger" @click="removeNewsImgInput(idx)"><i class="bi bi-trash"></i></button></div></div>
+                <button class="btn btn-sm btn-outline-secondary" @click="addNewsImgInput"><i class="bi bi-plus"></i> 新增消息圖片</button>
+              </div>
+              <div class="mb-3"><label class="form-label d-flex justify-content-between"><span>最新消息內容</span><span class="text-muted small">圖文編輯</span></label><div class="border rounded p-2 mb-2 bg-light"><div class="editor-toolbar btn-group mb-2"><button class="btn btn-outline-secondary btn-sm" @click="execCmd('bold')"><b>B</b></button><input type="color" class="btn btn-outline-secondary btn-sm p-1" style="width:40px" @change="execCmd('foreColor', $event.target.value)"><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyLeft')"><i class="bi bi-text-left"></i></button><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyCenter')"><i class="bi bi-text-center"></i></button><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyRight')"><i class="bi bi-text-right"></i></button></div><div id="newsEditor" class="form-control bg-white rich-editor" contenteditable="true" @input="updateNewsContent"></div></div></div>
+
+              <div class="mb-3"><label class="form-label d-flex justify-content-between"><span>購物說明 (Guide)</span><span class="text-muted small">圖文編輯</span></label><div class="border rounded p-2 mb-2 bg-light"><div class="editor-toolbar btn-group mb-2"><button class="btn btn-outline-secondary btn-sm" @click="execCmd('bold')"><b>B</b></button><input type="color" class="btn btn-outline-secondary btn-sm p-1" style="width:40px" @change="execCmd('foreColor', $event.target.value)"><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyLeft')"><i class="bi bi-text-left"></i></button><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyCenter')"><i class="bi bi-text-center"></i></button><button class="btn btn-outline-secondary btn-sm" @click="execCmd('justifyRight')"><i class="bi bi-text-right"></i></button></div><div id="guideEditor" class="form-control bg-white rich-editor" contenteditable="true" @input="updateGuideContent"></div></div></div>
+
               <div class="mb-3"><label class="form-label">後台管理密碼</label><input class="form-control" v-model="adminConfig.AdminPassword"></div>
               <button class="btn btn-success w-100" @click="saveConfig">儲存所有設定</button>
           </div>
       </div>
-      <!-- 其餘頁籤未更動 -->
     </div>
   </div>
 
@@ -425,10 +497,74 @@
     </div>
   </footer>
 
-  <!-- 原本的彈出視窗：管理商品 Modal -->
-  <!-- ...省略部分不需更動內容，節省空間... -->
+  <!-- 所有管理用的 Modals 完整保留 -->
+  <div class="modal fade" id="adminProdModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">{{ editingProd.rowIndex ? '編輯商品' : '新增商品' }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+      <div class="mb-2"><label>名稱</label><input class="form-control" v-model="editingProd.name"></div>
+      <div class="row mb-2">
+        <div class="col"><label>分類</label><select class="form-select" v-model="editingProd.category"><option v-for="c in categoriesList" :value="c.name">{{ c.name }}</option></select></div>
+        <div class="col"><label>價格</label><input type="number" class="form-control" v-model="editingProd.price"></div>
+        <div class="col"><label>庫存 (一般)</label><input type="number" class="form-control" v-model="editingProd.stock" :readonly="Object.keys(editingProd.stockObj||{}).length>0">
+        <div v-if="Object.keys(editingProd.stockObj||{}).length>0" class="form-text text-warning small">使用獨立庫存時，總數自動計算</div></div>
+      </div>
+      <div class="mb-2">
+        <label>圖片網址 (列表)</label>
+        <div class="mb-2" v-for="(url, idx) in productImgInputs" :key="idx"><div class="input-group input-group-sm"><input type="text" class="form-control" v-model="productImgInputs[idx]" placeholder="圖片連結"><button class="btn btn-outline-danger" @click="removeProductImgInput(idx)"><i class="bi bi-trash"></i></button></div></div>
+        <button class="btn btn-sm btn-outline-secondary" @click="addProductImgInput"><i class="bi bi-plus"></i> 新增圖片</button>
+      </div>
+      <div class="mb-2"><label>描述</label><textarea class="form-control" v-model="editingProd.desc"></textarea></div>
+      <div class="mb-2"><label>標籤 (逗號分隔)</label><input class="form-control" v-model="editingProd.tags" placeholder="New, Hot"></div>
+      <div class="mb-3 border p-3 rounded bg-light">
+        <label class="fw-bold mb-2 d-block text-primary">適用規格與獨立庫存</label>
+        <div class="row g-2">
+          <div class="col-12" v-for="opt in options" :key="opt.title">
+            <div class="form-check mb-1"><input class="form-check-input" type="checkbox" :id="'grp-'+opt.title" :checked="!!editingProd.specsObj?.[opt.title]" @change="(e) => toggleSpecGroup(opt.title, opt.choices, e.target.checked)"><label class="form-check-label fw-bold" :for="'grp-'+opt.title">{{ opt.title }}</label></div>
+            <div class="ps-4 d-flex flex-wrap gap-2 mb-2" v-if="!!editingProd.specsObj?.[opt.title]"><div v-for="choice in opt.choices" :key="choice" class="form-check form-check-inline"><input class="form-check-input" type="checkbox" :id="'c-'+opt.title+'-'+choice" :checked="editingProd.specsObj[opt.title].includes(choice)" @change="(e) => toggleSpecChoice(opt.title, choice, e.target.checked)"><label class="form-check-label small" :for="'c-'+opt.title+'-'+choice">{{ choice }}</label></div></div>
+          </div>
+        </div>
+        <div v-if="Object.keys(editingProd.specsObj || {}).length > 0" class="mt-3 pt-3 border-top">
+          <label class="small text-muted mb-2">獨立庫存設定 (規格組合 -> 數量)</label>
+          <div v-for="key in generateStockKeys()" :key="key" class="input-group input-group-sm mb-1" style="max-width: 300px;"><span class="input-group-text bg-white" style="min-width:120px">{{ key }}</span><input type="number" class="form-control" v-model.number="editingProd.stockObj[key]" placeholder="0" min="0" @input="calculateTotalStock"></div>
+        </div>
+        <div v-if="options.length === 0" class="text-muted small">尚未建立規格，請至「規格/運送」頁籤新增。</div>
+      </div>
+      <div class="mb-2"><label>狀態</label><select class="form-select" v-model="editingProd.status"><option value="Y">上架 (Y)</option><option value="N">下架 (N)</option></select></div>
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="saveProduct">儲存</button></div></div></div></div>
 
-  <!-- 點擊放大預覽 Modal (支援影片) -->
+  <div class="modal fade" id="adminCatModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">分類管理</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label>分類名稱</label><input class="form-control" v-model="editingCat.name" placeholder="如: 上身類"></div></div><div class="modal-footer"><button class="btn btn-primary" @click="saveCategory">儲存</button></div></div></div></div>
+
+  <div class="modal fade" id="adminOrderModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">訂單編輯 / 配貨</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+      <div class="alert alert-secondary py-2 mb-3 small">{{ editingOrder.orderId }} - {{ editingOrder.customer }}</div>
+      <div class="mb-3"><label class="form-label">訂單狀態</label><select class="form-select" v-model="editingOrder.status"><option value="處理中">處理中</option><option value="已確認">已確認</option><option value="已出貨">已出貨</option><option value="已完成">已完成</option><option value="已取消">已取消</option></select></div>
+      <div class="mb-3">
+        <label class="form-label">訂單內容 (獨立商品編輯)</label>
+        <div class="border rounded p-2 bg-light">
+           <div v-for="(item, idx) in editingOrder.parsedItems" :key="idx" class="d-flex align-items-center mb-2 gap-2 flex-wrap">
+              <template v-if="item.raw !== undefined"><input type="text" class="form-control form-control-sm flex-grow-1" v-model="item.raw" placeholder="自訂文字"></template>
+              <template v-else>
+                 <input type="text" class="form-control form-control-sm" style="flex: 2; min-width:100px;" v-model="item.name" placeholder="商品名稱">
+                 <input type="text" class="form-control form-control-sm" style="flex: 1; min-width:70px;" v-model="item.opts" placeholder="規格">
+                 <div class="input-group input-group-sm" style="flex: 1; min-width: 90px;"><span class="input-group-text">x</span><input type="number" class="form-control" v-model.number="item.qty" min="1" @input="recalcOrderTotal"></div>
+                 <div class="input-group input-group-sm" style="flex: 1; min-width: 100px;"><span class="input-group-text">$</span><input type="number" class="form-control" v-model.number="item.price" min="0" @input="recalcOrderTotal"></div>
+                 <div class="fw-bold text-end text-danger" style="width: 60px;">${{ item.qty * item.price }}</div>
+              </template>
+              <button type="button" class="btn btn-sm btn-outline-danger" @click="editingOrder.parsedItems.splice(idx, 1); recalcOrderTotal()"><i class="bi bi-x-lg"></i></button>
+           </div>
+           <button type="button" class="btn btn-sm btn-secondary w-100 mt-2" @click="editingOrder.parsedItems.push({name: '', opts: '', qty: 1, price: 0}); recalcOrderTotal()">＋ 新增商品項目</button>
+        </div>
+      </div>
+      <div class="row g-2 mb-3"><div class="col-md-6"><label class="form-label">運費</label><div class="input-group input-group-sm"><span class="input-group-text">$</span><input type="number" class="form-control" v-model.number="editingOrder.shippingFee" @input="recalcOrderTotal"></div></div><div class="col-md-6"><label class="form-label">付款資訊</label><input type="text" class="form-control form-control-sm" v-model="editingOrder.paymentInfo"></div></div>
+      <div class="mb-3"><label class="form-label">總金額 (自動計算)</label><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control text-danger fw-bold" v-model.number="editingOrder.total" readonly></div></div>
+      <div class="mb-3"><label class="form-label">物流追蹤單號 (Tracking Code)</label><input class="form-control" v-model="editingOrder.tracking" placeholder="輸入物流單號"></div>
+      <div class="mb-3"><label class="form-label">管理員備註</label><textarea class="form-control" v-model="editingOrder.note" rows="3" placeholder="內部備註..."></textarea></div>
+  </div><div class="modal-footer"><button class="btn btn-primary" @click="saveOrder">儲存變更</button></div></div></div></div>
+
+  <div class="modal fade" id="adminOptModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">編輯規格</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-2"><label>規格標題 (前台顯示)</label><input class="form-control" v-model="editingOpt.title" placeholder="如: 尺寸"></div><div class="mb-2"><label>選項內容 (逗號分隔)</label><input class="form-control" v-model="editingOpt.choicesStr" placeholder="S, M, L"></div><div class="mb-2"><label>管理分類 (選填)</label><input class="form-control" v-model="editingOpt.category" placeholder="如: 上身類"></div></div><div class="modal-footer"><button class="btn btn-primary" @click="saveOption">儲存</button></div></div></div></div>
+  <div class="modal fade" id="adminModeModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">編輯運送方式</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-2"><label>名稱</label><input class="form-control" v-model="editingMode.name"></div><div class="mb-2"><label>類型</label><select class="form-select" v-model="editingMode.inputType"><option value="Address">宅配 (填地址)</option><option value="Store">超商 (填店名)</option><option value="None">自取 (無)</option></select></div><div class="mb-2"><label>運費</label><input type="number" class="form-control" v-model="editingMode.fee"></div></div><div class="modal-footer"><button class="btn btn-primary" @click="saveMode">儲存</button></div></div></div></div>
+  <div class="modal fade" id="adminPayModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">編輯付款方式</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-2"><label>名稱 (如: LINE PAY)</label><input class="form-control" v-model="editingPay.name"></div><div class="mb-2"><label>類型</label><select class="form-select" v-model="editingPay.type"><option value="Text">純文字 (如帳號)</option><option value="Image">圖片 (如QR Code)</option><option value="None">無 (如貨到付款)</option></select></div><div class="mb-2" v-if="editingPay.type!=='None'"><label>內容 (文字資訊或圖片網址)</label><input class="form-control" v-model="editingPay.content"></div><div class="mb-2 form-check form-switch"><input class="form-check-input" type="checkbox" v-model="editingPay.needInput" true-value="Y" false-value="N"><label class="form-check-label">需填回報資訊 (如後五碼)</label></div><div class="mb-2 form-check form-switch"><input class="form-check-input" type="checkbox" v-model="editingPay.enabled" true-value="Y" false-value="N"><label class="form-check-label">啟用</label></div></div><div class="modal-footer"><button class="btn btn-primary" @click="savePayment">儲存</button></div></div></div></div>
+
+  <div class="modal fade" id="adminMemberOrderModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">會員歷史訂單</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div v-if="adminMemberOrders.length===0" class="text-center py-4 text-muted">無訂單記錄</div><div v-for="o in adminMemberOrders" :key="o.orderId" class="card mb-2"><div class="card-body py-2"><div class="d-flex justify-content-between"><strong>{{o.orderId}}</strong> <span>{{o.date}}</span></div><div class="small text-muted">{{o.content}}</div><div class="d-flex justify-content-between mt-1"><div><span class="badge bg-secondary">{{o.status}}</span> <span v-if="o.tracking" class="badge bg-info text-dark ms-1">追蹤: {{o.tracking}}</span></div><span class="fw-bold text-danger">${{o.total}}</span></div></div></div></div></div></div></div>
+
+  <!-- 圖片/影片預覽 Modal -->
   <div class="modal fade" id="imagePreviewModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content bg-transparent border-0">
@@ -448,9 +584,7 @@
     <div id="prodCarousel" class="carousel slide" data-bs-ride="carousel" v-if="modalItem.images && modalItem.images.length > 1">
        <div class="carousel-inner">
          <div class="carousel-item" v-for="(img, i) in modalItem.images" :key="i" :class="{active: i===0}">
-            <template v-if="isYoutube(img)">
-                <iframe :src="getYoutubeEmbedUrl(img)" class="modal-carousel-img w-100" frameborder="0" allow="fullscreen" loading="lazy"></iframe>
-            </template>
+            <template v-if="isYoutube(img)"><iframe :src="getYoutubeEmbedUrl(img)" class="modal-carousel-img w-100" frameborder="0" allow="fullscreen" loading="lazy"></iframe></template>
             <img v-else :src="img" class="modal-carousel-img" referrerpolicy="no-referrer">
          </div>
        </div>
@@ -462,21 +596,15 @@
         <img v-else :src="modalItem.image" class="modal-carousel-img" referrerpolicy="no-referrer">
     </template>
   </div>
-  <!-- 其餘商品資訊與加入購物車邏輯均未變動 -->
   <div class="col-md-6"><h3 class="font-serif mb-2">{{ modalItem.name }}</h3><div class="fs-4 fw-bold text-danger mb-3">${{ modalItem.price }}</div><p class="text-muted small" style="line-height:1.6">{{ modalItem.desc }}</p><hr>
-      <div v-if="modalOptions.length > 0">
-        <div v-for="(optGroup, idx) in modalOptions" :key="idx" class="mb-3">
-          <label class="fw-bold small mb-2 d-block">{{ optGroup.title }}</label>
-          <div class="d-flex flex-wrap"><button type="button" class="btn spec-btn" v-for="choice in optGroup.choices" :class="{active: selectedOpts[optGroup.title] === choice}" @click="selectedOpts[optGroup.title] = choice">{{ choice }}</button></div>
-        </div>
-      </div>
+      <div v-if="modalOptions.length > 0"><div v-for="(optGroup, idx) in modalOptions" :key="idx" class="mb-3"><label class="fw-bold small mb-2 d-block">{{ optGroup.title }}</label><div class="d-flex flex-wrap"><button type="button" class="btn spec-btn" v-for="choice in optGroup.choices" :class="{active: selectedOpts[optGroup.title] === choice}" @click="selectedOpts[optGroup.title] = choice">{{ choice }}</button></div></div></div>
       <div v-else class="text-muted small mb-3">此商品無規格選項</div>
-      <div class="mb-3 small">
-         <span v-if="currentStock > 0" class="text-success"><i class="bi bi-check-circle"></i> 庫存充足 (剩餘 {{currentStock}} 件)</span>
-         <span v-else class="text-danger"><i class="bi bi-x-circle"></i> 目前缺貨</span>
-      </div>
+      <div class="mb-3 small"><span v-if="currentStock > 0" class="text-success"><i class="bi bi-check-circle"></i> 庫存充足 (剩餘 {{currentStock}} 件)</span><span v-else class="text-danger"><i class="bi bi-x-circle"></i> 目前缺貨</span></div>
       <div class="mb-4"><label class="fw-bold small mb-2 d-block">數量</label><div class="input-group" style="width: 140px;"><button class="btn btn-outline-secondary rounded-0" @click="modalQty > 1 ? modalQty-- : null" :disabled="currentStock<=0">-</button><input type="text" class="form-control text-center border-secondary" :value="modalQty" readonly><button class="btn btn-outline-secondary rounded-0" @click="modalQty++" :disabled="modalQty >= currentStock">+</button></div></div><button class="btn btn-dark w-100 py-3 rounded-0 text-uppercase fw-bold" @click="addToCart" :disabled="currentStock<=0">加入購物車</button></div></div></div></div></div></div>
+  
   <div v-if="showAdminLogin" class="modal show d-block" style="background: rgba(0,0,0,0.5)"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 text-center"><h4 class="mb-3">管理員登入</h4><input type="password" class="form-control mb-3" placeholder="請輸入後台密碼" v-model="adminPin"><button class="btn btn-dark w-100" @click="adminLogin">登入</button><button class="btn btn-link w-100 mt-2" @click="showAdminLogin=false">取消</button></div></div></div>
+  <div v-if="showLoginModal" class="modal show d-block" style="background: rgba(0,0,0,0.5)"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0 p-4"><h4 class="font-serif text-center mb-4">會員登入</h4><input type="tel" class="form-control rounded-0 mb-3" placeholder="手機號碼" v-model="loginData.phone"><input type="password" class="form-control rounded-0 mb-3" placeholder="密碼" v-model="loginData.password"><button class="btn btn-dark w-100 rounded-0 mb-2" @click="login">登入</button><button class="btn btn-link text-muted w-100" @click="showLoginModal=false; showRegModal=true">還沒註冊？</button><button class="btn-close position-absolute top-0 end-0 m-3" @click="showLoginModal=false"></button></div></div></div>
+  <div v-if="showRegModal" class="modal show d-block" style="background: rgba(0,0,0,0.5)"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-0 p-4"><h4 class="font-serif text-center mb-4">註冊會員</h4><input type="text" class="form-control rounded-0 mb-3" placeholder="姓名" v-model="regData.name"><input type="tel" class="form-control rounded-0 mb-3" placeholder="手機號碼" v-model="regData.phone"><input type="text" class="form-control rounded-0 mb-3" placeholder="設定密碼" v-model="regData.password"><button class="btn btn-dark w-100 rounded-0 mb-2" @click="register">註冊</button><button class="btn btn-link text-muted w-100" @click="showRegModal=false; showLoginModal=true">返回登入</button></div></div></div>
 </div>
 
 <script>
@@ -512,6 +640,13 @@ createApp({
     }
   },
   mounted() {
+    document.addEventListener('click', (e) => {
+       const navEl = this.$refs.navbarCollapse;
+       const toggleBtn = document.querySelector('.navbar-toggler');
+       if (navEl && navEl.classList.contains('show') && !navEl.contains(e.target) && !toggleBtn.contains(e.target)) {
+          this.closeNavbar();
+       }
+    });
     this.fetchStoreData(); 
   },
   updated() {
@@ -519,7 +654,6 @@ createApp({
     if (document.getElementById('newsCarousel')) new bootstrap.Carousel(document.getElementById('newsCarousel'), { ride: 'carousel' });
   },
   computed: {
-    // 保留原本所有的 computed
     categories() { return [...new Set(this.products.map(p => p.category))]; },
     filteredProducts() { return this.filterCategory === 'All' ? this.products : this.products.filter(p => p.category === this.filterCategory); },
     featuredProducts() { return this.products.filter(p => p.tags.includes('New') || p.tags.includes('Hot')).slice(0, 4); },
@@ -543,13 +677,56 @@ createApp({
        this.cart.forEach(c => { if (c.rowIndex === this.modalItem.rowIndex && c.selectKey === selectKey) inCartQty += c.qty; });
        return Math.max(0, baseStock - inCartQty);
     },
-    // Admin Computed ...
-    filteredMembers() { return this.adminMembers; },
-    filteredAdminOrders() { return this.adminOrders; },
-    statsSummary() { return { totalRevenue: 0, totalOrders: 0, topProducts: [], topMembers: [], aov: 0, asp: 0 }; }
+    filteredMembers() {
+      if(!this.memberSearch) return this.adminMembers;
+      const s = this.memberSearch.toLowerCase();
+      return this.adminMembers.filter(m => m.name.toLowerCase().includes(s) || m.phone.includes(s));
+    },
+    filteredAdminOrders() {
+      let orders = this.adminOrders;
+      if (this.adminOrderFilter !== 'All') orders = orders.filter(o => o.status === this.adminOrderFilter);
+      if (this.adminOrderSearch) {
+         const s = this.adminOrderSearch.toLowerCase();
+         orders = orders.filter(o => o.orderId.toLowerCase().includes(s) || o.customer.toLowerCase().includes(s) || o.contact.includes(s));
+      }
+      return orders;
+    },
+    statsSummary() {
+      if (!this.adminOrders || this.adminOrders.length === 0) return { totalRevenue: 0, totalOrders: 0, topProducts: [], topMembers: [], aov: 0, asp: 0 };
+      const start = new Date(this.statsDateStart); start.setHours(0,0,0,0);
+      const end = new Date(this.statsDateEnd); end.setHours(23,59,59,999);
+      let rev = 0, count = 0, totalItems = 0, prodMap = {}, memberSpendingMap = {};
+      this.adminOrders.forEach(o => {
+        const d = new Date(o.date);
+        if (d >= start && d <= end && o.status !== '已取消') {
+          rev += Number(o.total || 0); count++;
+          const lines = (o.content || "").split('\n');
+          lines.forEach(line => {
+             const match = line.match(/x(\d+)/); 
+             if(match) {
+               const qty = parseInt(match[1]) || 0; totalItems += qty;
+               const nameMatch = line.match(/^(.+?)\s.*x\d+/);
+               const name = nameMatch ? nameMatch[1].trim() : "Unknown";
+               prodMap[name] = (prodMap[name] || 0) + qty;
+             }
+          });
+          const phoneMatch = o.contact.match(/電話:\s*([0-9\-]+)/);
+          if (phoneMatch) {
+             const phone = phoneMatch[1].trim();
+             if (!memberSpendingMap[phone]) memberSpendingMap[phone] = {name: o.customer, spending: 0};
+             memberSpendingMap[phone].spending += Number(o.total || 0);
+          }
+        }
+      });
+      const topProd = Object.keys(prodMap).map(k => ({name: k, qty: prodMap[k]})).sort((a,b)=>b.qty - a.qty).slice(0, 10);
+      const topMem = Object.values(memberSpendingMap).sort((a,b)=>b.spending - a.spending).slice(0, 10);
+      const aov = count > 0 ? Math.round(rev / count) : 0;
+      const asp = totalItems > 0 ? Math.round(rev / totalItems) : 0;
+      return { totalRevenue: rev, totalOrders: count, topProducts: topProd, topMembers: topMem, aov: aov, asp: asp };
+    }
   },
   methods: {
-    // 🌟🌟 新增：Youtube 判斷與轉換功能 🌟🌟
+    // 🌟 Youtube 判斷與轉換功能 🌟
     isYoutube(url) {
         if(!url) return false;
         return url.includes('youtube.com') || url.includes('youtu.be');
@@ -561,11 +738,8 @@ createApp({
             if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
             else if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
             else if (url.includes('embed/')) videoId = url.split('embed/')[1].split('?')[0];
-            
             if(!videoId) return url;
-            
             let query = '?rel=0&showinfo=0&controls=1&modestbranding=1';
-            // 若設定自動播放 (首頁輪播)，加上靜音才能自動播
             if(autoplay) {
                 query = `?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&playsinline=1&modestbranding=1`;
                 if(loop) query += `&loop=1&playlist=${videoId}`;
@@ -573,7 +747,6 @@ createApp({
             return `https://www.youtube.com/embed/${videoId}${query}`;
         } catch(e) { return url; }
     },
-    // 購物車/列表小縮圖用，避免載入過多播放器拖慢效能
     getYoutubeThumbnail(url) {
          let videoId = '';
          if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
@@ -582,41 +755,76 @@ createApp({
          return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : url;
     },
     
-    // (以下保留您原本所有的 methods，包含 fetchApi, 結帳, 後台管理等均未刪減改動)
+    // API 請求
     async fetchApi(action, payload = {}, silent = false) {
-      if(!silent) this.loading = true;
+      if(!GAS_API_URL || GAS_API_URL.includes("您的_GAS_API")) {
+         if (!silent) { this.loading = false; alert("尚未設定 GAS API 網址！請於程式碼下方替換 GAS_API_URL。"); }
+         return { success: false, error: "No API URL" };
+      }
+      if (!silent) this.loading = true;
       try {
         const response = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: action, data: payload }), headers: { "Content-Type": "text/plain" } });
-        const res = await response.json();
-        return res;
+        if (!response.ok) throw new Error("伺服器回應錯誤 (" + response.status + ")");
+        return await response.json();
       } catch (err) {
-        if(!silent) alert("連線錯誤：" + err.message);
+        console.error("API Error:", err);
+        if (!silent) alert("⚠️ 無法連線到後端！\n詳細錯誤: " + err.message);
         return { success: false, error: err.message };
-      } finally { if(!silent) this.loading = false; }
+      } finally {
+        if (!silent) this.loading = false;
+      }
     },
+
     async refreshProductsSilent() {
       const res = await this.fetchApi('getStoreData', { password: this.adminPin }, true);
-      if (res && res.products) this.products = res.products;
+      if (res && res.products) {
+         this.products = res.products;
+         if (this.modalItem) {
+            const updatedItem = this.products.find(p => p.rowIndex === this.modalItem.rowIndex);
+            if (updatedItem) {
+               this.modalItem.stock = updatedItem.stock;
+               if (updatedItem.specsObj) this.modalItem.specsObj = updatedItem.specsObj;
+            }
+         }
+      }
     },
+
     goPage(p) { this.page = p; this.closeNavbar(); },
-    closeNavbar() { const navEl = this.$refs.navbarCollapse; if (navEl && navEl.classList.contains('show')) new bootstrap.Collapse(navEl, {toggle: false}).hide(); },
+    closeNavbar() {
+       const navEl = this.$refs.navbarCollapse;
+       if (navEl && navEl.classList.contains('show')) {
+          const bsCollapse = new bootstrap.Collapse(navEl, {toggle: false});
+          bsCollapse.hide();
+       }
+    },
     showImagePreview(src) { this.previewImage = src; getModal('imagePreviewModal').show(); },
     displayStock(stock) { return stock && typeof stock === 'object' ? Object.values(stock).reduce((a, b) => Number(a) + Number(b), 0) : stock; },
+
+    // Front Actions
     async fetchStoreData() {
-      const res = await this.fetchApi('getStoreData', { password: this.adminPin });
-      if (res && res.products) {
-         this.products = res.products; this.options = res.options || []; this.modes = res.modes || [];
-         this.payments = res.payments || []; this.categoriesList = res.categories || [];
-         if(res.config) { this.config = res.config; if(this.config.rawConfig) this.adminConfig = this.config.rawConfig; }
-         if(this.modes.length > 0 && (!this.orderForm.shippingMethod || !this.orderForm.shippingMethod.name)) this.orderForm.shippingMethod = this.modes[0];
-         if(this.enabledPayments.length > 0 && !this.orderForm.paymentMethod) this.orderForm.paymentMethod = this.enabledPayments[0];
-      }
+      try {
+        const res = await this.fetchApi('getStoreData', { password: this.adminPin });
+        if (res && res.products) {
+           this.products = res.products; this.options = res.options || []; this.modes = res.modes || [];
+           this.payments = res.payments || []; this.categoriesList = res.categories || [];
+           if(res.config) {
+               this.config = res.config;
+               if(this.config.rawConfig) this.adminConfig = this.config.rawConfig; 
+           }
+           if(this.modes.length > 0 && (!this.orderForm.shippingMethod || !this.orderForm.shippingMethod.name)) this.orderForm.shippingMethod = this.modes[0];
+           if(this.enabledPayments.length > 0 && !this.orderForm.paymentMethod) this.orderForm.paymentMethod = this.enabledPayments[0];
+        }
+      } catch (e) { console.error("fetchStoreData exception:", e); }
     },
     openProductModal(item) {
       this.modalItem = item; this.modalQty = 1; this.selectedOpts = {}; this.modalOptions = [];
       if (item.specs && typeof item.specs === 'object' && !Array.isArray(item.specs) && !item.specs._legacy) {
-         for (const [title, choices] of Object.entries(item.specs)) if (choices && choices.length > 0) this.modalOptions.push({ title: title, choices: choices });
-      } else { this.modalOptions = this.options.filter(o => o.category === item.category); }
+         for (const [title, choices] of Object.entries(item.specs)) {
+            if (choices && choices.length > 0) this.modalOptions.push({ title: title, choices: choices });
+         }
+      } else {
+         this.modalOptions = this.options.filter(o => o.category === item.category);
+      }
       this.modalOptions.forEach(g => { if(g.choices.length > 0) this.selectedOpts[g.title] = g.choices[0]; });
       getModal('productModal').show();
       this.refreshProductsSilent();
@@ -629,31 +837,270 @@ createApp({
       let optStr = Object.values(this.selectedOpts).join(' / ');
       let selectKey = Object.values(this.selectedOpts).sort().join('-');
       let existingItem = this.cart.find(c => c.rowIndex === this.modalItem.rowIndex && c.selectKey === selectKey);
-      if (existingItem) existingItem.qty += this.modalQty; else this.cart.push({ ...this.modalItem, qty: this.modalQty, opts: optStr, selectKey: selectKey });
+      if (existingItem) existingItem.qty += this.modalQty;
+      else this.cart.push({ ...this.modalItem, qty: this.modalQty, opts: optStr, selectKey: selectKey });
       this.modalQty = 1; getModal('productModal').hide(); alert('已加入購物車');
     },
     increaseCartQty(item) {
         const p = this.products.find(x => x.rowIndex === item.rowIndex);
         if(!p) return;
-        let baseStock = (p.stock && typeof p.stock === 'object') ? Number(p.stock[item.selectKey] || 0) : Number(p.stock || 0);
+        let baseStock = 999;
+        if (p.stock && typeof p.stock === 'object') baseStock = Number(p.stock[item.selectKey] || 0);
+        else baseStock = Number(p.stock || 0);
         let inCartQty = this.cart.filter(c => c.rowIndex === item.rowIndex && c.selectKey === item.selectKey).reduce((sum, c) => sum + c.qty, 0);
-        if (inCartQty < baseStock) item.qty++; else alert('很抱歉，此商品已達目前庫存上限');
+        if (inCartQty < baseStock) item.qty++;
+        else alert('很抱歉，此商品已達目前庫存上限');
     },
     async submitOrder() {
       if (this.config.systemStatus === 'Closed') return alert('本商店目前維護中，暫停接單！');
       if (!this.member.name) { alert('請先登入會員'); this.showLoginModal = true; return; }
-      if (this.currentPayment.needInput === 'Y' && !this.orderForm.paymentDetails) return alert('請輸入付款資訊 (如後五碼)');
+      if (this.currentPayment.needInput === 'Y' && !this.orderForm.paymentDetails) { alert('請輸入付款資訊 (如後五碼)'); return; }
       this.isSubmitting = true;
       const payload = { 
-         name: this.orderForm.name, phone: this.orderForm.phone, address: this.orderForm.address, storeName: this.orderForm.storeName, note: this.orderForm.note, inputType: this.orderForm.shippingMethod.inputType, 
-         shippingMethod: this.orderForm.shippingMethod.name, shippingFee: this.orderForm.shippingMethod.fee, paymentMethod: this.orderForm.paymentMethod.name, paymentDetails: this.orderForm.paymentDetails, subtotal: this.cartSubtotal, cart: this.cart, memberPhone: this.member.phone 
+         name: this.orderForm.name, phone: this.orderForm.phone, address: this.orderForm.address, 
+         storeName: this.orderForm.storeName, note: this.orderForm.note, inputType: this.orderForm.shippingMethod.inputType, 
+         shippingMethod: this.orderForm.shippingMethod.name, shippingFee: this.orderForm.shippingMethod.fee, 
+         paymentMethod: this.orderForm.paymentMethod.name, paymentDetails: this.orderForm.paymentDetails,
+         subtotal: this.cartSubtotal, cart: this.cart, memberPhone: this.member.phone 
       };
       const res = await this.fetchApi('submitOrder', { payload });
       this.isSubmitting = false;
-      if (res && res.success) { this.lastOrderId = res.orderId; this.page = 'success'; this.cart = []; this.refreshProductsSilent(); } 
-      else { alert(res ? res.error : "訂單送出失敗"); this.refreshProductsSilent(); }
+      if (res && res.success) { 
+         this.lastOrderId = res.orderId; this.page = 'success'; this.cart = []; this.refreshProductsSilent();
+      } else {
+         alert(res ? res.error : "訂單送出失敗，請確認網路連線。"); this.refreshProductsSilent();
+      }
     },
-    // (登入註冊及後台函式等未改動)
+    async login() { const res = await this.fetchApi('login', this.loginData); if(res && res.success) { this.member = res; this.orderForm.name = res.name; this.orderForm.phone = res.phone; this.showLoginModal = false; } else alert(res ? res.error : "帳號或密碼錯誤"); },
+    async register() { const res = await this.fetchApi('register', this.regData); if(res && res.success) { alert('註冊成功'); this.showRegModal = false; this.showLoginModal = true; } else alert(res ? res.error : "註冊失敗"); },
+    logout() { this.member = {}; this.page = 'home'; },
+    async checkOrders() { const res = await this.fetchApi('getMemberOrders', { phone: this.member.phone }); if(res && res.success) { this.historyOrders = res.orders; this.page = 'history'; } },
+
+    // Admin Actions
+    async adminLogin() {
+       const res = await this.fetchApi('getStoreData', { password: this.adminPin });
+       if (res && res.isAdmin) {
+          this.isAdmin = true; this.showAdminLogin = false; this.page = 'admin';
+          this.products = res.products; this.adminConfig = res.config.rawConfig;
+          this.refreshAdminData();
+       } else { alert('密碼錯誤或連線失敗'); }
+    },
+    adminLogout() { this.isAdmin = false; this.adminPin = ''; this.page = 'home'; },
+    async refreshAdminData() {
+       const resOrders = await this.fetchApi('getAdminOrders', { password: this.adminPin });
+       if(resOrders && resOrders.success) this.adminOrders = resOrders.orders;
+       if(this.adminTab === 'members') {
+         const resMem = await this.fetchApi('getAdminMembers', { password: this.adminPin });
+         if(resMem && resMem.success) this.adminMembers = resMem.members;
+       }
+    },
+    async viewMemberOrders(member) {
+       const res = await this.fetchApi('getMemberDetailAdmin', { password: this.adminPin, targetPhone: member.phone });
+       if(res && res.success) { this.adminMemberOrders = res.orders; getModal('adminMemberOrderModal').show(); }
+       else { alert("查詢失敗"); }
+    },
+    async doAdminAction(subAction, payload) {
+       const res = await this.fetchApi('adminAction', { password: this.adminPin, subAction, payload });
+       if(res && res.success) { 
+          alert('操作成功'); this.fetchStoreData();
+          if(subAction === 'updateOrderDetails') this.refreshAdminData();
+          return true;
+       } else {
+          alert('失敗: ' + (res ? res.error : 'Network Error')); return false;
+       }
+    },
+    async sendTestEmail() {
+      if(!this.adminConfig.AdminEmail) return alert("請先輸入 Email");
+      const res = await this.fetchApi('testEmail', { password: this.adminPin, email: this.adminConfig.AdminEmail });
+      if(res && res.success) alert("測試信已發送，請檢查收件匣 (含垃圾郵件)"); else alert("發送失敗: " + (res ? res.error : 'Network Error'));
+    },
+    
+    // Rich Text Editor
+    execCmd(cmd, val) { document.execCommand(cmd, false, val); },
+    updateAboutUsContent(e) { this.adminConfig.AboutUs = e.target.innerHTML; },
+    updateNewsContent(e) { this.adminConfig.PageNews = e.target.innerHTML; },
+    updateGuideContent(e) { this.adminConfig.PageGuide = e.target.innerHTML; },
+    initEditors() {
+       const setHTML = (id, html) => { const el = document.getElementById(id); if(el && html) el.innerHTML = html; };
+       setHTML('aboutEditor', this.adminConfig.AboutUs);
+       setHTML('newsEditor', this.adminConfig.PageNews);
+       setHTML('guideEditor', this.adminConfig.PageGuide);
+    },
+    syncEditors() {
+       const getHTML = (id) => document.getElementById(id)?.innerHTML || "";
+       this.adminConfig.AboutUs = getHTML('aboutEditor');
+       this.adminConfig.PageNews = getHTML('newsEditor');
+       this.adminConfig.PageGuide = getHTML('guideEditor');
+    },
+    
+    // Dynamic Images
+    addWelcomeImgInput() { this.welcomeImgInputs.push(''); },
+    removeWelcomeImgInput(index) { this.welcomeImgInputs.splice(index, 1); },
+    addActivityImgInput() { this.activityImgInputs.push(''); },
+    removeActivityImgInput(index) { this.activityImgInputs.splice(index, 1); },
+    addNewsImgInput() { this.newsImgInputs.push(''); },
+    removeNewsImgInput(index) { this.newsImgInputs.splice(index, 1); },
+    addProductImgInput() { this.productImgInputs.push(''); },
+    removeProductImgInput(index) { this.productImgInputs.splice(index, 1); },
+    
+    saveConfig() { 
+       this.syncEditors();
+       this.adminConfig.WelcomeImage = this.welcomeImgInputs.filter(url => url.trim() !== '').join(',');
+       this.adminConfig.LatestActivityImages = this.activityImgInputs.filter(url => url.trim() !== '').join(',');
+       this.adminConfig.NewsImages = this.newsImgInputs.filter(url => url.trim() !== '').join(',');
+       this.doAdminAction('saveConfig', this.adminConfig); 
+    },
+    
+    // Product Edit Logic
+    editProduct(p) { 
+      this.editingProd = JSON.parse(JSON.stringify(p)); 
+      if(!this.editingProd.status) this.editingProd.status='Y';
+      if(!this.editingProd.specsObj) this.editingProd.specsObj = {};
+      if(this.editingProd.specs && !Array.isArray(this.editingProd.specs) && !this.editingProd.specs._legacy) {
+         this.editingProd.specsObj = this.editingProd.specs;
+      }
+      if(typeof this.editingProd.stock === 'object') {
+         this.editingProd.stockObj = JSON.parse(JSON.stringify(this.editingProd.stock));
+         let validKeys = this.generateStockKeys();
+         let fixedStockObj = {};
+         Object.keys(this.editingProd.stockObj).forEach(oldKey => {
+            if (validKeys.includes(oldKey)) { fixedStockObj[oldKey] = this.editingProd.stockObj[oldKey]; } 
+            else {
+               let parts = oldKey.split('-').sort().join('-');
+               if (validKeys.includes(parts)) { fixedStockObj[parts] = this.editingProd.stockObj[oldKey]; }
+            }
+         });
+         this.editingProd.stockObj = fixedStockObj; this.editingProd.stock = 0; 
+      } else {
+         this.editingProd.stockObj = {}; this.editingProd.stock = Number(this.editingProd.stock || 0);
+      }
+      this.productImgInputs = (this.editingProd.images && this.editingProd.images.length > 0) ? [...this.editingProd.images] : (this.editingProd.image ? [this.editingProd.image] : []);
+      getModal('adminProdModal').show(); 
+    },
+    toggleSpecGroup(title, allChoices, checked) {
+       if (checked) { this.editingProd.specsObj[title] = [...allChoices]; } else { delete this.editingProd.specsObj[title]; }
+       this.calculateTotalStock();
+    },
+    toggleSpecChoice(title, choice, checked) {
+       if (!this.editingProd.specsObj[title]) return;
+       if (checked) { if (!this.editingProd.specsObj[title].includes(choice)) this.editingProd.specsObj[title].push(choice); } 
+       else { const idx = this.editingProd.specsObj[title].indexOf(choice); if (idx > -1) this.editingProd.specsObj[title].splice(idx, 1); }
+       this.calculateTotalStock();
+    },
+    generateStockKeys() {
+       let specs = this.editingProd.specsObj; let keys = Object.keys(specs).sort();
+       if (keys.length === 0) return [];
+       let result = [];
+       const helper = (current, index) => {
+          if (index === keys.length) { result.push(current); return; }
+          let key = keys[index]; let values = specs[key];
+          if(!values || values.length === 0) { helper(current, index+1); return; }
+          values.forEach(v => { let next = current ? current + '-' + v : v; helper(next, index+1); });
+       };
+       helper('', 0);
+       return result;
+    },
+    calculateTotalStock() {
+       if (Object.keys(this.editingProd.stockObj).length > 0) {
+          let total = 0;
+          for (let key in this.editingProd.stockObj) { total += Number(this.editingProd.stockObj[key] || 0); }
+          this.editingProd.stock = total;
+       }
+    },
+    async saveProduct() { 
+       this.editingProd.specs = JSON.stringify(this.editingProd.specsObj);
+       if(Object.keys(this.editingProd.specsObj).length > 0) {
+          let validKeys = this.generateStockKeys(); let cleanStockObj = {};
+          validKeys.forEach(k => { cleanStockObj[k] = Number(this.editingProd.stockObj[k] || 0); });
+          this.editingProd.stock = JSON.stringify(cleanStockObj);
+       }
+       this.editingProd.image = this.productImgInputs.filter(url => url.trim() !== '').join(',');
+       const success = await this.doAdminAction('saveProduct', this.editingProd);
+       if(success) getModal('adminProdModal').hide();
+    },
+    async deleteProduct(p) { if(confirm('確定刪除?')) this.doAdminAction('deleteProduct', {rowIndex: p.rowIndex}); },
+    
+    // Category Edit
+    editCategory(c) { this.editingCat = JSON.parse(JSON.stringify(c)); getModal('adminCatModal').show(); },
+    async saveCategory() { const success = await this.doAdminAction('saveCategory', this.editingCat); if(success) getModal('adminCatModal').hide(); },
+    async deleteCategory(c) { if(confirm('確定刪除?')) this.doAdminAction('deleteCategory', {rowIndex: c.rowIndex}); },
+
+    // Option Edit
+    editOption(o) { this.editingOpt = JSON.parse(JSON.stringify(o)); this.editingOpt.choicesStr = (o.choices||[]).join(','); getModal('adminOptModal').show(); },
+    async saveOption() { 
+       this.editingOpt.choices = this.editingOpt.choicesStr.split(',').map(s=>s.trim());
+       const success = await this.doAdminAction('saveOption', this.editingOpt);
+       if(success) getModal('adminOptModal').hide();
+    },
+    async deleteOption(o) { if(confirm('確定刪除?')) this.doAdminAction('deleteOption', {rowIndex: o.rowIndex}); },
+    
+    // Mode Edit
+    editMode(m) { this.editingMode = JSON.parse(JSON.stringify(m)); getModal('adminModeModal').show(); },
+    async saveMode() { const success = await this.doAdminAction('saveMode', this.editingMode); if(success) getModal('adminModeModal').hide(); },
+    async deleteMode(m) { if(confirm('確定刪除?')) this.doAdminAction('deleteMode', {rowIndex: m.rowIndex}); },
+    
+    // Payment Edit
+    editPayment(p) { this.editingPay = JSON.parse(JSON.stringify(p)); if(!this.editingPay.enabled) this.editingPay.enabled='Y'; getModal('adminPayModal').show(); },
+    async savePayment() { const success = await this.doAdminAction('savePayment', this.editingPay); if(success) getModal('adminPayModal').hide(); },
+    async deletePayment(p) { if(confirm('確定刪除?')) this.doAdminAction('deletePayment', {rowIndex: p.rowIndex}); },
+
+    // Order Edit
+    recalcOrderTotal() {
+       let sum = 0;
+       if (this.editingOrder && this.editingOrder.parsedItems) {
+           this.editingOrder.parsedItems.forEach(i => { if (i.raw === undefined) { sum += (i.qty * i.price); } });
+       }
+       sum += Number(this.editingOrder.shippingFee || 0);
+       this.editingOrder.total = sum;
+    },
+    editOrder(o) { 
+        this.editingOrder = JSON.parse(JSON.stringify(o)); 
+        this.editingOrder.parsedItems = []; this.editingOrder.shippingFee = 0; this.editingOrder.paymentInfo = "";
+        const lines = (this.editingOrder.content || "").split('\n');
+        let parsingItems = true;
+        lines.forEach(line => {
+            if (line.startsWith('----------------')) { parsingItems = false; return; }
+            if (parsingItems) {
+                const match = line.match(/^(.*?)(?:\s+\[(.*?)\])?\s+x(\d+)\s+\(\$(\d+)\)$/);
+                if (match) {
+                    const qty = parseInt(match[3], 10); const subtotal = parseInt(match[4], 10);
+                    this.editingOrder.parsedItems.push({ name: match[1].trim(), opts: match[2] ? match[2].trim() : '', qty: qty, price: qty > 0 ? subtotal / qty : 0 });
+                } else if (line.trim() !== '') {
+                    this.editingOrder.parsedItems.push({ raw: line });
+                }
+            } else {
+                if (line.startsWith('運費: $')) { this.editingOrder.shippingFee = parseInt(line.replace('運費: $', ''), 10); } 
+                else if (line.startsWith('付款: ')) { this.editingOrder.paymentInfo = line.replace('付款: ', ''); }
+            }
+        });
+        getModal('adminOrderModal').show(); 
+    },
+    async saveOrder() {
+       let contentStr = this.editingOrder.parsedItems.map(i => {
+           if (i.raw !== undefined) return i.raw;
+           let specStr = i.opts ? `[${i.opts}]` : '';
+           return `${i.name} ${specStr} x${i.qty} ($${i.qty * i.price})`;
+       }).join("\n");
+       contentStr += `\n----------------\n運費: $${this.editingOrder.shippingFee || 0}`;
+       if (this.editingOrder.paymentInfo) { contentStr += `\n----------------\n付款: ${this.editingOrder.paymentInfo}`; }
+       this.editingOrder.content = contentStr;
+       const success = await this.doAdminAction('updateOrderDetails', this.editingOrder);
+       if(success) getModal('adminOrderModal').hide();
+    },
+    async updateOrderStatus(o) { await this.doAdminAction('updateOrderDetails', { orderId: o.orderId, status: o.status }); }
+  },
+  watch: {
+    adminTab(newVal) {
+       if(newVal === 'settings') {
+          this.welcomeImgInputs = this.adminConfig.WelcomeImage ? this.adminConfig.WelcomeImage.split(',') : [];
+          this.activityImgInputs = this.adminConfig.LatestActivityImages ? this.adminConfig.LatestActivityImages.split(',') : [];
+          this.newsImgInputs = this.adminConfig.NewsImages ? this.adminConfig.NewsImages.split(',') : [];
+          setTimeout(() => this.initEditors(), 100);
+       }
+    },
+    'editingProd.stockObj': {
+       handler() { this.calculateTotalStock(); }, deep: true
+    }
   }
 }).mount('#app');
 </script>
